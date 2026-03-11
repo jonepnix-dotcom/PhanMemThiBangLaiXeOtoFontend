@@ -1,0 +1,10 @@
+# .gitignore
+node_modules/
+dist/
+build/
+.vscode/
+.env
+npm-debug.log
+yarn-error.log
+.DS_Store
+coverage/
