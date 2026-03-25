@@ -160,6 +160,8 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
         questions={filteredQuestions}
         onExit={() => { setSelectedChapter(null); setShowParalysisOnly(false); }}
         showTimer={false}
+        autoAdvance={false}
+        allowUnsure={false}
         submitButtonText="Hoàn thành"
         showImmediateExplanation={true}
       />
@@ -168,13 +170,13 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
 
   // 2. Mặc định: Hiển thị danh sách các chương ôn tập
   return (
-    <div className="w-full h-full bg-gradient-to-b from-white via-blue-50/30 to-white animate-fade-in overflow-auto">
+  <div className="w-full h-full bg-gradient-to-b from-transparent via-blue-50/30 to-transparent animate-fade-in overflow-auto">
       <div className="max-w-7xl mx-auto px-6 py-10">
         <div className="mb-8 text-center">
-          <h2 className="text-3xl font-bold text-gray-800 mb-2">
+          <h2 className="text-3xl font-bold text-white drop-shadow mb-2">
             Nội Dung Ôn Tập 600 Câu Hỏi
           </h2>
-          <p className="text-gray-600">Học theo từng chương để nắm vững kiến thức luật giao thông đường bộ</p>
+          <p className="text-white/90 drop-shadow">Học theo từng chương để nắm vững kiến thức luật giao thông đường bộ</p>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

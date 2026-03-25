@@ -276,27 +276,27 @@ export const AdminPage: React.FC<AdminPageProps> = ({ questions, setQuestions, c
           </motion.p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-6">
-          {/* Sidebar menu */}
-          <aside className="hidden md:block">
-            <div className="sticky top-24 space-y-3">
-              <button onClick={() => setAdminTab('overview')} className={`w-full text-left px-4 py-3 rounded-xl transition-colors ${adminTab==='overview' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border border-gray-100'}`}>
-                <div className="flex items-center gap-3"><BookOpen size={16} /> <span>Overview</span></div>
-              </button>
-              <button onClick={() => setAdminTab('questions')} className={`w-full text-left px-4 py-3 rounded-xl transition-colors ${adminTab==='questions' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border border-gray-100'}`}>
-                <div className="flex items-center gap-3"><BookOpen size={16} /> <span>Questions</span></div>
-              </button>
-              <button onClick={() => setAdminTab('review')} className={`w-full text-left px-4 py-3 rounded-xl transition-colors ${adminTab==='review' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border border-gray-100'}`}>
-                <div className="flex items-center gap-3"><Layers size={16} /> <span>Review Chapters</span></div>
-              </button>
-              <button onClick={() => setAdminTab('docs')} className={`w-full text-left px-4 py-3 rounded-xl transition-colors ${adminTab==='docs' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border border-gray-100'}`}>
-                <div className="flex items-center gap-3"><FileText size={16} /> <span>Documents</span></div>
-              </button>
-              <button onClick={() => setAdminTab('settings')} className={`w-full text-left px-4 py-3 rounded-xl transition-colors ${adminTab==='settings' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border border-gray-100'}`}>
-                <div className="flex items-center gap-3"><Settings size={16} /> <span>Settings</span></div>
-              </button>
-            </div>
-          </aside>
+        <div className="space-y-6">
+          {/* Top menu (replaces sidebar) - sticky when scrolling */}
+          <div className="sticky top-24 z-40">
+            <nav className="w-full flex flex-wrap items-center gap-3 mb-2 bg-white/60 backdrop-blur-sm px-3 py-2 rounded-xl shadow-sm">
+            <button onClick={() => setAdminTab('overview')} className={`px-4 py-2 rounded-xl transition-colors ${adminTab==='overview' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border border-gray-100'}`}>
+              <div className="flex items-center gap-2"><BookOpen size={16} /> <span className="hidden sm:inline">Overview</span></div>
+            </button>
+            <button onClick={() => setAdminTab('questions')} className={`px-4 py-2 rounded-xl transition-colors ${adminTab==='questions' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border border-gray-100'}`}>
+              <div className="flex items-center gap-2"><BookOpen size={16} /> <span className="hidden sm:inline">Questions</span></div>
+            </button>
+            <button onClick={() => setAdminTab('review')} className={`px-4 py-2 rounded-xl transition-colors ${adminTab==='review' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border border-gray-100'}`}>
+              <div className="flex items-center gap-2"><Layers size={16} /> <span className="hidden sm:inline">Review Chapters</span></div>
+            </button>
+            <button onClick={() => setAdminTab('docs')} className={`px-4 py-2 rounded-xl transition-colors ${adminTab==='docs' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border border-gray-100'}`}>
+              <div className="flex items-center gap-2"><FileText size={16} /> <span className="hidden sm:inline">Documents</span></div>
+            </button>
+            <button onClick={() => setAdminTab('settings')} className={`px-4 py-2 rounded-xl transition-colors ${adminTab==='settings' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border border-gray-100'}`}>
+              <div className="flex items-center gap-2"><Settings size={16} /> <span className="hidden sm:inline">Settings</span></div>
+            </button>
+          </nav>
+          </div>
 
           <main>
             {/* Quick Stats Dashboard (overview) */}

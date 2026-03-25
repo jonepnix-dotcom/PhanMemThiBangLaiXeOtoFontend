@@ -24,7 +24,7 @@ interface HomePageProps {
 
 export const HomePage: React.FC<HomePageProps> = ({ onNavigateToThi, onNavigateToDocs }) => {
   return (
-    <div className="flex-1 flex flex-col w-full bg-gradient-to-b from-white/80 via-blue-50/50 to-white/80 animate-fade-in">
+  <div className="flex-1 flex flex-col w-full bg-gradient-to-b from-transparent via-blue-50/50 to-transparent animate-fade-in">
       {/* Hero Section */}
       <section className="relative w-full h-[600px] overflow-hidden flex items-center">
         {/* Background Image with Overlay */}

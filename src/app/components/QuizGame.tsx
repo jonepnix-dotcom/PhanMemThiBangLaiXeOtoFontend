@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { CheckCircle, XCircle, Clock, AlertTriangle, ArrowRight, ArrowLeft, RotateCcw, Loader2 } from 'lucide-react';
 import { Question } from '@/app/types';
 
@@ -19,12 +19,17 @@ interface QuizGameProps {
   showTimer?: boolean;
   submitButtonText?: string;
   showImmediateExplanation?: boolean;
+  autoAdvance?: boolean; // whether to automatically move to next question after answering
+  allowUnsure?: boolean; // whether to show "mark unsure" checkbox and markers
+  resultFullPage?: boolean; // when true, render result view to fill the page body
 }
 
-export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit, initialSelectedAnswers, startShowResult, readonly, examConfig, showTimer = true, submitButtonText = 'Nộp bài', showImmediateExplanation = false }) => {
+export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit, initialSelectedAnswers, startShowResult, readonly, examConfig, showTimer = true, submitButtonText = 'Nộp bài', showImmediateExplanation = false, autoAdvance = true, allowUnsure = true, resultFullPage = false }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>(() => initialSelectedAnswers || {});
+  const [unsureQuestions, setUnsureQuestions] = useState<Record<string, boolean>>(() => ({}));
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const autoAdvanceTimer = useRef<number | null>(null);
   const defaultTime = (examConfig?.timeSeconds) ?? (22 * 60);
   const [timeLeft, setTimeLeft] = useState(defaultTime);
   const [showResult, setShowResult] = useState(!!startShowResult);
@@ -77,6 +82,16 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
     return () => clearInterval(timer);
   }, [showResult, readonly, showTimer]);
 
+  // Clear any pending auto-advance timer on unmount
+  useEffect(() => {
+    return () => {
+      if (autoAdvanceTimer.current) {
+        clearTimeout(autoAdvanceTimer.current);
+        autoAdvanceTimer.current = null;
+      }
+    };
+  }, []);
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -85,19 +100,50 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
 
   const handleSelectAnswer = (optionIndex: number) => {
     if (showResult || readonly) return;
+    // clear any pending auto-advance timer
+    if (autoAdvanceTimer.current) {
+      clearTimeout(autoAdvanceTimer.current);
+      autoAdvanceTimer.current = null;
+    }
+
     setSelectedAnswers(prev => ({
       ...prev,
       [currentQuestion.id]: optionIndex
     }));
+
+    // auto-advance to next question after short delay (unless last question)
+    if (autoAdvance && currentQuestionIndex < totalQuestions - 1) {
+      autoAdvanceTimer.current = window.setTimeout(() => {
+        setCurrentQuestionIndex(prev => Math.min(prev + 1, totalQuestions - 1));
+        autoAdvanceTimer.current = null;
+      }, 500);
+    }
+  };
+
+  const handleToggleUnsure = () => {
+    if (showResult || readonly) return;
+    setUnsureQuestions(prev => ({
+      ...prev,
+      [currentQuestion.id]: !prev[currentQuestion.id]
+    }));
   };
 
   const handleNext = () => {
+    // clear pending auto-advance when navigating manually
+    if (autoAdvanceTimer.current) {
+      clearTimeout(autoAdvanceTimer.current);
+      autoAdvanceTimer.current = null;
+    }
     if (currentQuestionIndex < totalQuestions - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
     }
   };
 
   const handlePrev = () => {
+    if (autoAdvanceTimer.current) {
+      clearTimeout(autoAdvanceTimer.current);
+      autoAdvanceTimer.current = null;
+    }
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(prev => prev - 1);
     }
@@ -128,6 +174,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
         failedByCritical,
         timeTakenSeconds,
         incorrectQuestions,
+        unsureQuestions,
         questions: usedQuestions,
         selectedAnswers,
       } as any;
@@ -149,8 +196,14 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
   const isPassed = correctCount >= passCountGlobal && !(paralysisMandatoryGlobal && failedByCritical);
 
   if (showResult) {
+    const outerClass = resultFullPage
+      ? 'w-full h-full mx-0 bg-white rounded-none shadow-none overflow-hidden animate-fade-in flex flex-col'
+      : 'w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in';
+
+    const bodyClass = resultFullPage ? 'p-8 flex-1 overflow-y-auto' : 'p-8 max-h-[60vh] overflow-y-auto';
+
     return (
-      <div className="w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in">
+      <div className={outerClass}>
         <div className={`p-8 text-center text-white ${isPassed ? 'bg-green-600' : 'bg-red-500'}`}>
           {isPassed ? <CheckCircle size={80} className="mx-auto mb-4" /> : <XCircle size={80} className="mx-auto mb-4" />}
           <h2 className="text-4xl font-bold mb-2">{isPassed ? "ĐẠT" : "KHÔNG ĐẠT"}</h2>
@@ -160,34 +213,51 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
           )}
         </div>
         
-        <div className="p-8 max-h-[60vh] overflow-y-auto">
+        <div className={bodyClass}>
           <h3 className="text-2xl font-bold mb-6 text-gray-800">Chi tiết bài làm</h3>
           <div className="space-y-6">
             {usedQuestions.map((q, index) => {
               const userAnswer = selectedAnswers[q.id];
               const isCorrect = userAnswer === q.correctAnswer;
-              
+              const isUnsure = !!unsureQuestions[q.id];
+
+              const containerClass = `p-4 rounded-xl border-2 ${isUnsure ? 'border-yellow-400 bg-yellow-100' : (isCorrect ? 'border-green-100 bg-green-50' : 'border-red-100 bg-red-50')}`;
+
               return (
-                <div key={q.id} className={`p-4 rounded-xl border-2 ${isCorrect ? 'border-green-100 bg-green-50' : 'border-red-100 bg-red-50'}`}>
+                <div key={q.id} className={containerClass}>
                   <div className="flex gap-3">
                     <span className="font-bold text-gray-500">Câu {index + 1}:</span>
                     <div className="flex-1">
-                      <p className="font-medium text-gray-900 mb-3">{q.content}</p>
+                      <div className="flex items-center gap-3 mb-3">
+                        <p className="font-medium text-gray-900">{q.content}</p>
+                        {isUnsure && (
+                          <span className="text-xs font-semibold text-yellow-800 bg-yellow-100 px-2 py-0.5 rounded">Không chắc</span>
+                        )}
+                      </div>
                       <div className="space-y-2">
                         {q.options.map((opt, i) => (
-                          <div key={i} className={`
-                            p-2 rounded-lg text-sm flex items-center justify-between
-                            ${i === q.correctAnswer ? 'bg-green-200 text-green-900 font-medium' : ''}
-                            ${i === userAnswer && i !== q.correctAnswer ? 'bg-red-200 text-red-900' : ''}
-                            ${i !== userAnswer && i !== q.correctAnswer ? 'bg-white/50 text-gray-600' : ''}
-                          `}>
-                            <span>{String.fromCharCode(65 + i)}. {opt}</span>
-                            {i === q.correctAnswer && <CheckCircle size={16} className="text-green-700" />}
-                            {i === userAnswer && i !== q.correctAnswer && <XCircle size={16} className="text-red-700" />}
-                          </div>
+                          (() => {
+                            const isOptCorrect = i === q.correctAnswer;
+                            const isOptUser = i === userAnswer;
+                            const baseClass = 'p-2 rounded-lg text-sm flex items-center justify-between';
+                            const correctClass = 'bg-green-200 text-green-900 font-medium';
+                            const wrongClass = 'bg-red-200 text-red-900';
+                            const neutralClass = 'bg-transparent text-gray-700';
+                            const unsureHighlightCorrect = isUnsure && isOptCorrect ? 'ring-2 ring-green-300' : '';
+                            const unsureHighlightWrong = isUnsure && isOptUser && !isOptCorrect ? 'ring-2 ring-red-300' : '';
+                            const combined = [baseClass, isOptCorrect ? correctClass : '', (isOptUser && !isOptCorrect) ? wrongClass : '', (!isOptUser && !isOptCorrect) ? neutralClass : '', unsureHighlightCorrect, unsureHighlightWrong].filter(Boolean).join(' ');
+
+                            return (
+                              <div key={i} className={combined}>
+                                <span>{String.fromCharCode(65 + i)}. {opt}</span>
+                                {isOptCorrect && <CheckCircle size={16} className="text-green-700" />}
+                                {isOptUser && !isOptCorrect && <XCircle size={16} className="text-red-700" />}
+                              </div>
+                            );
+                          })()
                         ))}
                       </div>
-                      {!isCorrect && q.explanation && (
+                      {q.explanation && (
                         <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-[20px] text-amber-900 leading-relaxed">
                           <span className="font-bold text-amber-950">Giải thích:</span> {q.explanation}
                         </div>
@@ -245,28 +315,83 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
           </div>
 
           <div className="space-y-3">
-            {currentQuestion.options.map((option, index) => (
-              <button
-                key={index}
-                onClick={() => handleSelectAnswer(index)}
-                className={`
-                  w-full text-left p-4 rounded-xl border-2 transition-all duration-200 flex items-center gap-4 group
-                  ${selectedAnswers[currentQuestion.id] === index 
-                    ? 'border-blue-500 bg-blue-50 text-blue-900 shadow-md' 
-                    : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50 text-gray-700'}
-                `}
-              >
-                <div className={`
-                  w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg border-2 flex-shrink-0 transition-colors
-                  ${selectedAnswers[currentQuestion.id] === index 
-                    ? 'bg-blue-500 border-blue-500 text-white' 
-                    : 'bg-white border-gray-300 text-gray-500 group-hover:border-blue-400 group-hover:text-blue-500'}
-                `}>
-                  {String.fromCharCode(65 + index)}
-                </div>
-                <span className="text-lg font-medium">{option}</span>
-              </button>
-            ))}
+            {currentQuestion.options.map((option, index) => {
+              const userAns = selectedAnswers[currentQuestion.id];
+              const isAnswered = userAns !== undefined;
+              const isOptCorrect = index === currentQuestion.correctAnswer;
+              const isOptUser = index === userAns;
+
+              // When immediate explanation mode is active (review), show green for correct answer
+              // and red for the user's wrong selection. Otherwise keep original selection styling.
+              let optionClass = 'w-full text-left p-4 rounded-xl border-2 transition-all duration-200 flex items-center gap-4 group ';
+              if (isAnswered && showImmediateExplanation) {
+                if (isOptCorrect) {
+                  optionClass += 'border-green-500 bg-green-100 text-green-900 shadow-md';
+                } else if (isOptUser && !isOptCorrect) {
+                  optionClass += 'border-red-500 bg-red-100 text-red-900';
+                } else {
+                  optionClass += 'border-gray-200 bg-transparent text-gray-700';
+                }
+              } else {
+                optionClass += isOptUser ? 'border-blue-500 bg-blue-50 text-blue-900 shadow-md' : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50 text-gray-700';
+              }
+
+              return (
+                <button
+                  key={index}
+                  onClick={() => handleSelectAnswer(index)}
+                  className={optionClass}
+                >
+                  {/* Radio-like marker */}
+                  <div className="flex items-center justify-center flex-shrink-0">
+                    {isAnswered && showImmediateExplanation ? (
+                      isOptCorrect ? (
+                        <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-white">
+                          <CheckCircle size={14} />
+                        </div>
+                      ) : isOptUser ? (
+                        <div className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-white">
+                          <XCircle size={14} />
+                        </div>
+                      ) : (
+                        <div className="w-8 h-8 rounded-full border-2 border-gray-300 flex items-center justify-center text-gray-400">
+                          <span className="text-sm font-semibold">{String.fromCharCode(65 + index)}</span>
+                        </div>
+                      )
+                    ) : (
+                      isOptUser ? (
+                        <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                          <CheckCircle size={14} />
+                        </div>
+                      ) : (
+                        <div className="w-8 h-8 rounded-full border-2 border-gray-300 flex items-center justify-center text-gray-400">
+                          <span className="text-sm font-semibold">{String.fromCharCode(65 + index)}</span>
+                        </div>
+                      )
+                    )}
+                  </div>
+                  <span className="text-lg font-medium">{option}</span>
+                </button>
+              );
+            })}
+
+            {/* Mark unsure checkbox (optional) */}
+            {allowUnsure && (
+              <div className="mt-3 flex items-center gap-3">
+                <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={!!unsureQuestions[currentQuestion.id]}
+                    onChange={handleToggleUnsure}
+                    className="w-4 h-4 rounded border-gray-300 text-yellow-500 focus:ring-yellow-400"
+                  />
+                  <span className="select-none">Đánh dấu không chắc</span>
+                </label>
+                {unsureQuestions[currentQuestion.id] && (
+                  <span className="text-xs text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded">Đã đánh dấu</span>
+                )}
+              </div>
+            )}
 
             {showImmediateExplanation && selectedAnswers[currentQuestion.id] !== undefined && (
               <div
@@ -321,31 +446,37 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
           </div>
         </div>
 
-        {/* Sidebar Navigation (Desktop) */}
-        <div className="w-full md:w-72 bg-gray-50 border-l border-gray-200 p-4 hidden md:flex md:flex-col">
+  {/* Sidebar Navigation (Desktop) */}
+  <div className="w-full md:w-72 bg-transparent border-none p-4 hidden md:flex md:flex-col">
           <h4 className="font-bold text-gray-500 text-sm uppercase tracking-wider mb-4">Danh sách câu hỏi</h4>
           <div className="max-h-[46vh] overflow-y-auto pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-            <div className="grid grid-cols-5 lg:grid-cols-6 gap-1.5">
+            <div className="grid grid-cols-5 lg:grid-cols-6 gap-2">
               {usedQuestions.map((q, idx) => {
                 const selectedOptionIndex = selectedAnswers[q.id];
-                const selectedOptionLabel = selectedOptionIndex !== undefined ? String.fromCharCode(65 + selectedOptionIndex) : null;
+                const selectedOptionLabel = selectedOptionIndex !== undefined ? String.fromCodePoint(65 + selectedOptionIndex) : null;
 
                 return (
                   <button
                     key={q.id}
                     onClick={() => setCurrentQuestionIndex(idx)}
+                    type="button"
                     className={`
-                      relative h-8 rounded-md font-bold text-xs transition-all
+                      relative w-10 h-10 flex items-center justify-center rounded-md font-bold text-sm transition-all select-none box-border
                       ${currentQuestionIndex === idx ? 'ring-2 ring-blue-500 ring-offset-1' : ''}
                       ${selectedOptionIndex !== undefined
                         ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                        : 'bg-white text-gray-400 border border-gray-200 hover:border-gray-300'}
+                        : 'bg-white text-gray-500 border border-gray-200 hover:border-gray-300'}
                     `}
                   >
-                    {idx + 1}
+                    <span className="pointer-events-none">{idx + 1}</span>
                     {selectedOptionLabel && (
                       <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full text-[9px] leading-4 font-extrabold shadow-sm bg-blue-600 text-white">
                         {selectedOptionLabel}
+                      </span>
+                    )}
+                    {allowUnsure && unsureQuestions[q.id] && (
+                      <span className="absolute -top-1 -left-1 min-w-4 h-4 px-1 rounded-full text-[9px] leading-4 font-extrabold shadow-sm bg-yellow-500 text-white">
+                        ?
                       </span>
                     )}
                   </button>

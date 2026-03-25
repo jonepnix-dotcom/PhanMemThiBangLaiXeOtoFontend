@@ -39,7 +39,7 @@ export const DocumentsPage: React.FC = () => {
   );
 
   return (
-    <div className="w-full h-full bg-gradient-to-b from-white via-blue-50/30 to-white animate-fade-in overflow-auto py-12 px-4 sm:px-6 lg:px-8">
+    <div className="w-full h-full bg-gradient-to-b from-transparent via-blue-50/30 to-transparent animate-fade-in overflow-auto py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
         {/* Header Section */}
         <div className="text-center mb-12">
@@ -54,7 +54,7 @@ export const DocumentsPage: React.FC = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-4xl font-extrabold text-gray-900 mb-4"
+            className="text-4xl font-extrabold text-white drop-shadow-lg mb-4"
           >
             Tài Liệu Học Tập
           </motion.h1>
@@ -62,7 +62,7 @@ export const DocumentsPage: React.FC = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-lg text-gray-600 max-w-2xl mx-auto"
+            className="text-lg text-white/90 max-w-2xl mx-auto drop-shadow"
           >
             Khám phá và tải xuống các tài liệu ôn tập, đề thi tham khảo và bài giảng được cập nhật mới nhất.
           </motion.p>

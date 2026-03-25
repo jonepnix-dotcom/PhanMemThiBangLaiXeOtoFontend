@@ -541,8 +541,8 @@ const App = () => {
         </div>
       </nav>
 
-      {/* Main Content with Transition */}
-      <main className="flex-1 flex flex-col relative w-full overflow-hidden">
+  {/* Main Content with Transition */}
+  <main className="flex-1 flex flex-col relative w-full overflow-auto">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentPage + resetKey} // Change key to trigger animation
@@ -557,60 +557,7 @@ const App = () => {
         </AnimatePresence>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-blue-50 pt-10 pb-6 border-t border-blue-100">
-        <div className="container mx-auto px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-3">
-                <img src={logoImage} alt="Group 3 .NET Tech" className="h-10 w-10 object-cover rounded-xl" />
-                <span className="font-bold text-lg text-blue-900">GROUP 3 .NET TECH</span>
-              </div>
-              <p className="text-gray-500 text-sm leading-relaxed">
-                Nền tảng học tập và ôn thi trực tuyến hàng đầu, giúp bạn chinh phục mọi thử thách kiến thức một cách dễ dàng và hiệu quả.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="font-bold text-blue-800 mb-4 uppercase text-sm tracking-wider">Liên kết nhanh</h3>
-              <ul className="space-y-2 text-gray-600 text-sm">
-                <li><button onClick={() => handlePageChange('HOME')} className="hover:text-blue-500 transition-colors">Trang Chủ</button></li>
-                <li><button onClick={() => handlePageChange('DOCS')} className="hover:text-blue-500 transition-colors">Tài Liệu Học Tập</button></li>
-                <li><button onClick={() => handlePageChange('THI')} className="hover:text-blue-500 transition-colors">Thi Sát Hạch</button></li>
-                <li><button onClick={() => handlePageChange('REVIEW')} className="hover:text-blue-500 transition-colors">Ôn Tập</button></li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-bold text-blue-800 mb-4 uppercase text-sm tracking-wider">Hỗ trợ</h3>
-              <ul className="space-y-2 text-gray-600 text-sm">
-                <li><a href="#" className="hover:text-blue-500 transition-colors">Trung tâm trợ giúp</a></li>
-                <li><a href="#" className="hover:text-blue-500 transition-colors">Điều khoản sử dụng</a></li>
-                <li><button onClick={() => handlePageChange('PRIVACY')} className="hover:text-blue-500 transition-colors">Chính sách bảo mật</button></li>
-                <li><button onClick={() => handlePageChange('CONTACT')} className="hover:text-blue-500 transition-colors">Liên hệ góp ý</button></li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-bold text-blue-800 mb-4 uppercase text-sm tracking-wider">Kết nối</h3>
-              <div className="flex items-center gap-2 mb-4 text-gray-600 text-sm">
-                 <Mail size={16} />
-                 <span>contact@myweb.com</span>
-              </div>
-              <div className="flex gap-4">
-                <SocialIcon icon={<Facebook size={18} />} />
-                <SocialIcon icon={<Twitter size={18} />} />
-                <SocialIcon icon={<Instagram size={18} />} />
-              </div>
-            </div>
-          </div>
-          
-          <div className="border-t border-blue-200 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
-            <p>© 2024 MyWeb. Bản quyền thuộc về chúng tôi.</p>
-            <p>Được thiết kế với ❤️ và ☕</p>
-          </div>
-        </div>
-      </footer>
+      {/* Footer removed - app uses full-height content */}
     </div>
   );
 };

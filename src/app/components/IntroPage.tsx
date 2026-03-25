@@ -8,14 +8,14 @@ interface IntroPageProps {
 
 export const IntroPage: React.FC<IntroPageProps> = ({ onNavigateToThi, onNavigateToDocs }) => {
   return (
-    <div className="w-full h-full bg-gradient-to-b from-white via-blue-50/30 to-white animate-fade-in overflow-auto">
+  <div className="w-full h-full bg-gradient-to-b from-transparent via-blue-50/30 to-transparent animate-fade-in overflow-auto">
       <div className="max-w-7xl mx-auto px-6 py-10">
         <div className="text-center mb-10">
           <span className="inline-block px-4 py-1.5 rounded-full bg-blue-100 text-blue-700 text-sm font-bold mb-4">
             Giới thiệu nền tảng
           </span>
-          <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">GROUP 3 .NET TECH</h1>
-          <p className="max-w-3xl mx-auto text-gray-700 text-lg leading-relaxed">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-white drop-shadow-lg mb-4">GROUP 3 .NET TECH</h1>
+          <p className="max-w-3xl mx-auto text-white/90 text-lg leading-relaxed drop-shadow">
             Nền tảng ôn thi lý thuyết GPLX trực tuyến với trải nghiệm mô phỏng sát đề thi thật,
             giúp bạn học đúng trọng tâm, làm quen giao diện và tự tin trước kỳ thi chính thức.
           </p>

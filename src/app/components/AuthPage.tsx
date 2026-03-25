@@ -71,8 +71,8 @@ export const AuthPage = ({ onLogin, onNavigateToPrivacy }: AuthPageProps) => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-100 p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen w-full flex flex-col bg-gradient-to-br from-blue-50 via-white to-blue-100 p-4">
+      <div className="w-full max-w-md flex-grow flex flex-col justify-center">
         {/* Logo */}
         <div className="text-center mb-8 animate-fade-in">
           <img 
@@ -96,8 +96,8 @@ export const AuthPage = ({ onLogin, onNavigateToPrivacy }: AuthPageProps) => {
           </div>
         )}
 
-        {/* Form Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 border border-blue-100">
+  {/* Form Card */}
+  <div className="bg-transparent rounded-2xl shadow-xl p-8 border border-blue-100">
           {/* Tab Switch */}
           <div className="flex gap-2 mb-6 bg-blue-50 p-1 rounded-lg">
             <button
@@ -254,7 +254,7 @@ export const AuthPage = ({ onLogin, onNavigateToPrivacy }: AuthPageProps) => {
               <div className="w-full border-t border-gray-200"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">hoặc</span>
+              <span className="px-2 bg-transparent text-gray-500">hoặc</span>
             </div>
           </div>
 
@@ -266,7 +266,7 @@ export const AuthPage = ({ onLogin, onNavigateToPrivacy }: AuthPageProps) => {
               type="button"
               onClick={handleGoogleLogin}
               disabled={isLoading}
-              className={`w-full bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 py-3 px-4 rounded-lg font-medium transition-all duration-300 flex items-center justify-center gap-2 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+              className={`w-full bg-transparent border border-gray-200 hover:bg-gray-50 text-gray-700 py-3 px-4 rounded-lg font-medium transition-all duration-300 flex items-center justify-center gap-2 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
             >
               {isLoading ? (
                 <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
@@ -308,23 +308,24 @@ export const AuthPage = ({ onLogin, onNavigateToPrivacy }: AuthPageProps) => {
           </div>
         </div>
 
-        {/* Footer Note */}
-        <p className="text-center text-sm text-gray-500 mt-6">
-          Bằng việc đăng nhập, bạn đồng ý với{' '}
-          <a href="#" className="text-blue-600 hover:underline">Điều khoản sử dụng</a>
-          {' '}và{' '}
-          <button 
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              onNavigateToPrivacy?.();
-            }}
-            className="text-blue-600 hover:underline"
-          >
-            Chính sách bảo mật
-          </button>
-        </p>
       </div>
+
+      {/* Footer Note - visible and pinned to bottom */}
+      <p className="mt-auto text-center text-sm text-gray-500 py-4">
+        Bằng việc đăng nhập, bạn đồng ý với{' '}
+        <a href="#" className="text-blue-600 hover:underline">Điều khoản sử dụng</a>
+        {' '}và{' '}
+        <button 
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            onNavigateToPrivacy?.();
+          }}
+          className="text-blue-600 hover:underline"
+        >
+          Chính sách bảo mật
+        </button>
+      </p>
     </div>
   );
 };

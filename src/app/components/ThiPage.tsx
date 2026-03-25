@@ -238,6 +238,7 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
             questions={examQuestions}
             onExit={() => setSelectedExam(null)} 
             examConfig={examConfig ?? undefined}
+            resultFullPage={true}
           />
         </div>
       </div>
@@ -246,14 +247,14 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
 
   // 2. Màn hình chính (Trang chủ Thi Sát Hạch)
   return (
-    <div className="w-full h-full bg-gradient-to-b from-white via-blue-50/30 to-white animate-fade-in overflow-auto">
+  <div className="w-full h-full bg-gradient-to-b from-transparent via-blue-50/30 to-transparent animate-fade-in overflow-auto">
       <div className="max-w-7xl mx-auto px-6 py-10">
         
         {/* Phần 1: Chọn Văn Bằng */}
         <div>
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-gray-800 mb-3">Chọn Văn Bằng</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <h2 className="text-3xl font-bold text-white drop-shadow mb-3">Chọn Văn Bằng</h2>
+            <p className="text-white/90 max-w-2xl mx-auto drop-shadow">
               Chọn hạng bằng lái xe bạn đang ôn tập để làm các đề thi sát với thực tế nhất.
             </p>
           </div>
