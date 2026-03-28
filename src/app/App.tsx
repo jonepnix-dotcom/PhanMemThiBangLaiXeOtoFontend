@@ -3,7 +3,7 @@ import { Home, FileText, Facebook, Twitter, Instagram, Mail, LogIn, User as User
 import { AnimatePresence, motion } from 'framer-motion';
 import logoImage from '@/assets/logo.svg';
 import userAvatar from '@/assets/avatar.svg';
-// removed pageBackground image per request: use plain white background
+import pageBackground from '@/assets/background-main.png';
 import { AuthPage } from '@/app/components/AuthPage';
 import { ProfilePage } from '@/app/components/ProfilePage';
 import { HistoryPage } from '@/app/components/HistoryPage';
@@ -421,8 +421,12 @@ const App = () => {
     <div
       className="min-h-screen w-full flex flex-col font-sans text-gray-800 overflow-x-hidden"
       style={{
-          // Use plain white background instead of image
-          backgroundColor: '#ffffff',
+          backgroundImage: `url(${pageBackground})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed',
+          backgroundColor: '#060066',
         }}
     >
       {/* Navbar */}

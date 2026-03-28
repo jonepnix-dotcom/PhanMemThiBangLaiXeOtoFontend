@@ -40,7 +40,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateToThi, onNavigateT
         {/* Content */}
         <div className="container mx-auto px-8 relative z-10 flex flex-col md:flex-row items-center justify-between gap-12">
           <div className="flex-1 text-white space-y-6 max-w-2xl">
-            <motion.div 
+              <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
@@ -112,7 +112,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateToThi, onNavigateT
               <span className="text-blue-600 font-bold uppercase tracking-wider text-sm">Về Hệ Thống</span>
               <h2 className="text-3xl md:text-4xl font-bold text-gray-800">Thông Tin Chung</h2>
               <div className="w-20 h-1 bg-blue-500 rounded-full"></div>
-
+              
               <div className="space-y-4 text-gray-600 leading-relaxed">
                 <p>
                   <strong className="text-gray-900">Giới thiệu:</strong> Website cung cấp giải pháp thi thử và ôn tập lý thuyết lái xe ô tô trực tuyến, mô phỏng chính xác phần mềm sát hạch quốc gia.
@@ -145,10 +145,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateToThi, onNavigateT
               </div>
             </div>
             <div className="flex-1">
-              <img 
-                src="https://images.unsplash.com/photo-1758612214917-81d7956c09de?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxvbmxpbmUlMjBsZWFybmluZyUyMHN0dWRlbnQlMjBsYXB0b3B8ZW58MXx8fHwxNzcwMTE2MTA4fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral" 
-                alt="Online Learning" 
+              <motion.img
+                src="https://images.unsplash.com/photo-1758612214917-81d7956c09de?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxvbmxpbmUlMjBsZWFybmluZyUyMHN0dWRlbnQlMjBsYXB0b3B8ZW58MXx8fHwxNzcwMTE2MTA4fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+                alt="Online Learning"
                 className="rounded-2xl shadow-2xl w-full object-cover h-[400px]"
+                initial={{ opacity: 0, y: 20, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                whileHover={{ scale: 1.04, rotate: 0.8 }}
+                transition={{ duration: 0.6 }}
               />
             </div>
           </div>
@@ -159,9 +163,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateToThi, onNavigateT
   <section className="py-20 bg-blue-600/70 text-white">
         <div className="container mx-auto px-8">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <span className="text-blue-200 font-bold uppercase tracking-wider text-sm">Quy chuẩn 600 câu</span>
-            <h2 className="text-3xl md:text-4xl font-bold text-white mt-2">Thông Tin Kỳ Thi</h2>
-            <p className="text-white/90 mt-4">Cấu trúc đề thi và điều kiện đậu cho từng hạng bằng.</p>
+  <span className="text-blue-200 font-bold uppercase tracking-wider text-sm">Quy chuẩn 600 câu</span>
+  <h2 className="text-3xl md:text-4xl font-bold text-white mt-2">Thông Tin Kỳ Thi</h2>
+  <p className="text-white/90 mt-4">Cấu trúc đề thi và điều kiện đậu cho từng hạng bằng.</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -216,14 +220,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateToThi, onNavigateT
         </div>
       </section>
 
-      {/* Question Bank Section */}
-      <section className="py-20 bg-white/70">
+  {/* Question Bank Section */}
+  <section className="py-20 bg-white">
         <div className="container mx-auto px-8">
           <div className="flex flex-col lg:flex-row gap-16">
             <div className="lg:w-1/3 space-y-6">
-              <span className="text-blue-600 font-bold uppercase tracking-wider text-sm">Nội dung ôn tập</span>
-              <h2 className="text-3xl font-bold text-gray-800">Ngân Hàng 600 Câu Hỏi</h2>
-              <p className="text-gray-600 leading-relaxed">
+            <span className="text-blue-600 font-bold uppercase tracking-wider text-sm">Nội dung ôn tập</span>
+            <h2 className="text-3xl font-bold text-gray-800">Ngân Hàng 600 Câu Hỏi</h2>
+            <p className="text-gray-600 leading-relaxed">
                 Tổng hợp 600 câu hỏi lý thuyết lái xe ô tô dùng cho sát hạch, cấp giấy phép lái xe đường bộ.
                 <br/><br/>
                 Nguồn dữ liệu: Chuẩn hóa theo dữ liệu công khai của Tổng cục Đường bộ Việt Nam.
@@ -243,23 +247,31 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateToThi, onNavigateT
             
             <div className="lg:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-6">
                <div className="relative h-[400px] rounded-2xl overflow-hidden shadow-lg group">
-                  <img 
-                    src="https://images.unsplash.com/photo-1549916028-5fe07973a5c5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0cmFmZmljJTIwc2lnbnMlMjByb2FkJTIwc2FmZXR5fGVufDF8fHx8MTc3MDE2MzU1M3ww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral" 
+                  <motion.img
+                    src="https://images.unsplash.com/photo-1549916028-5fe07973a5c5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0cmFmZmljJTIwc2lnbnMlMjByb2FkJTIwc2FmZXR5fGVufDF8fHx8MTc3MDE2MzU1M3ww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
                     alt="Traffic Signs"
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                    className="w-full h-full object-cover"
+                    initial={{ opacity: 0, y: 16, scale: 0.99 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    whileHover={{ scale: 1.06, rotate: 1 }}
+                    transition={{ duration: 0.6 }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8 pointer-events-none">
                     <h3 className="text-white font-bold text-2xl mb-2">Hệ thống biển báo</h3>
                     <p className="text-gray-300">Nắm vững ý nghĩa của từng loại biển báo cấm, nguy hiểm, hiệu lệnh...</p>
                   </div>
                </div>
                <div className="relative h-[400px] rounded-2xl overflow-hidden shadow-lg group">
-                  <img 
-                    src="https://images.unsplash.com/photo-1742997734865-71d10c491be5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjYXIlMjBkcml2aW5nJTIwZGFzaGJvYXJkJTIwc2ltdWxhdG9yfGVufDF8fHx8MTc3MDE2MzU1OXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral" 
+                  <motion.img
+                    src="https://images.unsplash.com/photo-1742997734865-71d10c491be5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjYXIlMjBkcml2aW5nJTIwZGFzaGJvYXJkJTIwc2ltdWxhdG9yfGVufDF8fHx8MTc3MDE2MzU1OXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
                     alt="Driving Simulation"
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                    className="w-full h-full object-cover"
+                    initial={{ opacity: 0, y: 16, scale: 0.99 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    whileHover={{ scale: 1.06, rotate: -1 }}
+                    transition={{ duration: 0.6 }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8 pointer-events-none">
                     <h3 className="text-white font-bold text-2xl mb-2">600 Câu hỏi lý thuyết</h3>
                     <p className="text-gray-300">Hệ thống câu hỏi trắc nghiệm đầy đủ, cập nhật mới nhất theo quy định của Bộ GTVT.</p>
                   </div>
@@ -324,18 +336,18 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateToThi, onNavigateT
         </div>
       </section>
 
-      {/* Stats & Results Preview */}
-      <section className="py-20 bg-white/70">
-        <div className="container mx-auto px-8 text-center">
-           <h2 className="text-3xl font-bold text-gray-800 mb-12">Kết Quả & Phân Tích Chi Tiết</h2>
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <StatFeature title="Kết quả tức thì" desc="ĐẠT hoặc KHÔNG ĐẠT ngay sau khi nộp bài." icon={<Zap size={24} />} />
-              <StatFeature title="Điểm số chi tiết" desc="Ví dụ: 34/35. Hiển thị chính xác số câu đúng." icon={<Trophy size={24} />} />
-              <StatFeature title="Phân tích lỗi" desc="Xem lại câu sai kèm giải thích đáp án đúng." icon={<AlertTriangle size={24} />} />
-              <StatFeature title="Gợi ý ôn tập" desc="Hệ thống đề xuất phần kiến thức cần cải thiện." icon={<BookOpen size={24} />} />
-           </div>
+  {/* Stats & Results Preview */}
+  <section className="py-24 bg-white">
+      <div className="container mx-auto px-8 text-center">
+        <h2 className="text-3xl font-bold text-gray-800 mb-12">Kết Quả & Phân Tích Chi Tiết</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <StatFeature title="Kết quả tức thì" desc="ĐẠT hoặc KHÔNG ĐẠT ngay sau khi nộp bài." icon={<Zap size={24} />} />
+          <StatFeature title="Điểm số chi tiết" desc="Ví dụ: 34/35. Hiển thị chính xác số câu đúng." icon={<Trophy size={24} />} />
+          <StatFeature title="Phân tích lỗi" desc="Xem lại câu sai kèm giải thích đáp án đúng." icon={<AlertTriangle size={24} />} />
+          <StatFeature title="Gợi ý ôn tập" desc="Hệ thống đề xuất phần kiến thức cần cải thiện." icon={<BookOpen size={24} />} />
         </div>
-      </section>
+      </div>
+    </section>
 
   {/* FAQ & Support */}
   <section className="py-20 bg-blue-600/70 text-white">
@@ -358,6 +370,17 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateToThi, onNavigateT
            </Accordion.Root>
         </div>
       </section>
+
+      {/* Small footer with basic info */}
+      <footer className="bg-white border-t">
+        <div className="container mx-auto px-8 py-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-2 text-sm text-gray-700">
+            <div className="font-bold text-gray-900">GROUP 3 .NET TECH</div>
+            <div>Hotline: <a href="tel:333-88-222-55" className="text-blue-600 hover:underline">333-88-222-55</a></div>
+            <div className="text-gray-500">© {new Date().getFullYear()} Nhóm 3. All rights reserved.</div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
@@ -367,8 +390,8 @@ const ExamCard = ({ title, questions, time, passScore, icon, color }: { title: s
     <div className={`w-12 h-12 ${color} rounded-lg flex items-center justify-center text-white mb-4 shadow-lg shadow-${color}/30`}>
       {icon}
     </div>
-    <h3 className="font-bold text-xl text-gray-800 mb-2">{title}</h3>
-    <ul className="space-y-2 text-sm text-gray-600">
+  <h3 className="font-bold text-xl text-gray-800 mb-2">{title}</h3>
+  <ul className="space-y-2 text-sm text-gray-600">
       <li className="flex justify-between">
         <span>Số câu:</span>
         <span className="font-medium text-gray-900">{questions}</span>
@@ -391,15 +414,15 @@ const StepCard = ({ step, title, description }: { step: string, title: string, d
       {step}
     </div>
     <h3 className="font-bold text-xl text-gray-800 mb-3 mt-2">{title}</h3>
-    <p className="text-gray-600 text-sm leading-relaxed">{description}</p>
+  <p className="text-gray-600 text-sm leading-relaxed">{description}</p>
   </div>
 );
 
 const StatFeature = ({ title, desc, icon }: { title: string, desc: string, icon: React.ReactNode }) => (
-  <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 flex flex-col items-center">
-     <div className="text-blue-600 mb-4 bg-blue-100 p-3 rounded-full">{icon}</div>
-     <h3 className="font-bold text-gray-800 mb-2">{title}</h3>
-     <p className="text-sm text-gray-600">{desc}</p>
+  <div className="bg-gray-50 p-8 rounded-xl border border-gray-100 flex flex-col items-center justify-center space-y-4 min-h-[160px]">
+     <div className="text-blue-600 mb-2 bg-blue-100 p-3 rounded-full">{icon}</div>
+     <h3 className="font-bold text-gray-800 mb-1">{title}</h3>
+  <p className="text-sm text-gray-600 text-center max-w-[220px]">{desc}</p>
   </div>
 );
 
@@ -411,7 +434,7 @@ const AccordionItem = ({ value, question, children, white }: { value: string, qu
         <ChevronDown className={`${white ? 'text-gray-400 transition-transform duration-300' : 'text-white/80 transition-transform duration-300'}`} size={20} />
       </Accordion.Trigger>
     </Accordion.Header>
-    <Accordion.Content className={`${white ? 'p-4 pt-0 text-gray-600 text-sm leading-relaxed border-t border-gray-100 bg-white/50 data-[state=open]:animate-slideDown data-[state=closed]:animate-slideUp overflow-hidden' : 'p-4 pt-0 text-white/90 text-sm leading-relaxed border-t border-blue-500/10 bg-blue-700/20 data-[state=open]:animate-slideDown data-[state=closed]:animate-slideUp overflow-hidden'}`}>
+  <Accordion.Content className={`${white ? 'p-4 pt-0 text-gray-600 text-sm leading-relaxed border-t border-gray-100 bg-white/50 data-[state=open]:animate-slideDown data-[state=closed]:animate-slideUp overflow-hidden' : 'p-4 pt-0 text-white/90 text-sm leading-relaxed border-t border-blue-500/10 bg-blue-700/20 data-[state=open]:animate-slideDown data-[state=closed]:animate-slideUp overflow-hidden'}`}>
        <div className="pt-4">{children}</div>
     </Accordion.Content>
   </Accordion.Item>
