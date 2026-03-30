@@ -59,7 +59,29 @@ export const AuthPage = ({ onLogin, onNavigateToPrivacy }: AuthPageProps) => {
           throw new Error('Không nhận được token từ server');
         }
       } else {
-        // Xử lý đăng ký nếu cần
+        if (formData.password !== formData.confirmPassword) {
+          throw new Error('Mật khẩu xác nhận không khớp.');
+        }
+
+        // Đăng ký qua API
+        const response = await fetch('https://localhost:52207/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username: formData.name,
+            password: formData.password
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || 'Đăng ký thất bại. Vui lòng thử lại.');
+        }
+
+        // Đăng ký thành công, bạn có thể tự động gọi đăng nhập hoặc hiển thị thông báo
+        // Ở đây giả lập đăng nhập luôn
         onLogin({
           name: formData.name, 
           email: formData.email
@@ -187,27 +209,6 @@ export const AuthPage = ({ onLogin, onNavigateToPrivacy }: AuthPageProps) => {
                 />
               </div>
             </div>
-
-            {/* Email - chỉ hiện khi đăng ký */}
-            {!isLogin && (
-              <div className="animate-fade-in">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    placeholder="example@email.com"
-                    className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    required={!isLogin}
-                  />
-                </div>
-              </div>
-            )}
 
             {/* Mật khẩu */}
             <div>
