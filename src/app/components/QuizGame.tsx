@@ -288,9 +288,9 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
   }
 
   return (
-    <div className="w-full flex-1 flex flex-col md:flex-row bg-white text-gray-800 overflow-hidden">
+    <div className="w-full flex-1 flex flex-col md:flex-row bg-white text-gray-800">
       {/* Sidebar Navigation */}
-      <div className="w-full md:w-80 bg-gray-50 border-r border-gray-200 flex flex-col h-full shadow-lg z-10 flex-shrink-0">
+  <div className="w-full md:w-80 bg-gray-50 border-r border-gray-200 flex flex-col shadow-lg z-10 flex-shrink-0 md:sticky md:top-20 md:h-[calc(100vh-5rem)] overflow-y-auto hide-scrollbar">
         
         {/* Timer & Info */}
         <div className="p-6 border-b border-gray-200 bg-white">

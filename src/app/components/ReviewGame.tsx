@@ -96,7 +96,7 @@ export const ReviewGame: React.FC<ReviewGameProps> = ({ examTitle, questions, on
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+      <div className="flex-1 flex flex-col md:flex-row">
         <div className="flex-1 p-6 md:p-8 overflow-y-auto">
           <div className="mb-6">
             <span className="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-bold mb-3">
@@ -156,7 +156,7 @@ export const ReviewGame: React.FC<ReviewGameProps> = ({ examTitle, questions, on
           </div>
         </div>
 
-        <div className="w-full md:w-64 bg-gray-50 border-l border-gray-200 p-4 overflow-y-auto hidden md:block">
+  <div className="w-full md:w-64 bg-gray-50 border-l border-gray-200 p-4 overflow-y-auto hidden md:block md:sticky md:top-20 md:h-[calc(100vh-6rem)] hide-scrollbar">
           <h4 className="font-bold text-gray-500 text-sm uppercase tracking-wider mb-4">Danh sách câu hỏi</h4>
           <div className="grid grid-cols-4 gap-2">
             {questions.map((q, idx) => (

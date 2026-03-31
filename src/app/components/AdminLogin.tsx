@@ -49,11 +49,6 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ questions, setQuestions 
     setUsername('');
     setPassword('');
     toast('Đã đăng xuất');
-    // Optionally navigate away
-    try {
-      history.pushState({}, '', '/');
-      window.dispatchEvent(new Event('popstate'));
-    } catch (e) {}
   };
 
   if (isAuth) {

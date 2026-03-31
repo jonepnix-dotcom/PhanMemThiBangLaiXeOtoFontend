@@ -87,15 +87,59 @@ const App = () => {
       return [];
     }
   });
-  //Load lại vẫn giữ login
+  // Load session on startup: restore token, role and user profile (if available)
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    const role = localStorage.getItem('userRole');
+    const init = async () => {
+      try {
+        const token = localStorage.getItem('accessToken');
+        const role = localStorage.getItem('userRole');
+        let storedName = localStorage.getItem('userName');
+        let storedEmail = localStorage.getItem('userEmail');
 
-    if (token && role) {
-      setIsAuthenticated(true);
-      setUserRole(role as 'USER' | 'ADMIN');
-    }
+        if (token && role) {
+          setIsAuthenticated(true);
+          setUserRole(role as 'USER' | 'ADMIN');
+
+          // If profile not stored locally try to fetch it from API
+          if (!storedName && token) {
+            try {
+              const res = await fetch('https://localhost:52207/auth/me', {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              if (res && res.ok) {
+                const profile = await res.json();
+                storedName = profile?.name ?? storedName;
+                storedEmail = profile?.email ?? storedEmail;
+                try {
+                  if (storedName) localStorage.setItem('userName', storedName);
+                  if (storedEmail) localStorage.setItem('userEmail', storedEmail);
+                } catch (e) {}
+              }
+            } catch (e) {
+              // ignore fetch errors
+            }
+          }
+
+          // restore user profile if present
+          if (storedName || storedEmail) {
+            setUserData({ name: storedName ?? 'Khách', email: storedEmail ?? '' });
+          }
+          setShowAuthPage(false);
+        } else {
+          // Nếu không có token/đã đăng xuất => hiển thị trang đăng nhập
+          setIsAuthenticated(false);
+          setUserRole(null);
+          setUserData({ name: 'Khách', email: '' });
+          setShowAuthPage(true);
+        }
+      } catch (err) {
+        // ignore and show auth
+        setIsAuthenticated(false);
+        setShowAuthPage(true);
+      }
+    };
+
+    init();
   }, []);
   // Persist questions to localStorage whenever they change
   useEffect(() => {
@@ -310,12 +354,18 @@ const App = () => {
   }, [currentPage]);
 
   // Hàm xử lý đăng nhập
-const handleLogin = (user: { name: string; email: string; role: 'USER' | 'ADMIN' }) => {
-  setIsAuthenticated(true);
-  setUserData(user);
-  setUserRole(user.role);
-  setShowAuthPage(false);
-};
+  const handleLogin = (user: { name: string; email: string; role: 'USER' | 'ADMIN' }) => {
+    setIsAuthenticated(true);
+    setUserData(user);
+    setUserRole(user.role);
+    // persist basic profile so reload / direct-url keeps the name
+    try {
+      localStorage.setItem('userName', user.name);
+      localStorage.setItem('userEmail', user.email);
+      localStorage.setItem('userRole', user.role);
+    } catch (e) {}
+    setShowAuthPage(false);
+  };
 
   // Hàm hiển thị trang đăng nhập
   const handleShowAuthPage = () => {
@@ -326,9 +376,15 @@ const handleLogin = (user: { name: string; email: string; role: 'USER' | 'ADMIN'
   const handleLogout = () => {
   setIsAuthenticated(false);
   setUserRole(null);
-  localStorage.removeItem('accessToken');
+  try {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userRole');
+  } catch (e) {}
   setUserData({ name: 'Khách', email: '' });
   setCurrentPage('HOME');
+  setShowAuthPage(true);
 };
 
   // Nếu chưa đăng nhập và đang hiển thị trang Auth

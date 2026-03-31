@@ -58,6 +58,15 @@
   .text-gray-700 {
     @apply text-slate-900;
   }
+
+  /* Utility to hide native scrollbars while keeping scroll behavior */
+  .hide-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
 }
 
 .dark {

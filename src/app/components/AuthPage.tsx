@@ -52,11 +52,12 @@ export const AuthPage = ({ onLogin, onNavigateToPrivacy, onBack }: AuthPageProps
         
         if (data.accessToken) {
           // Lưu token vào localStorage
+          localStorage.setItem('accessToken', data.accessToken);
           localStorage.setItem('userRole', data.role === 1 ? 'ADMIN' : 'USER');
           
           onLogin({
             name: data.name,
-            email: formData.email,
+            email: data.email ?? formData.email,
             role: data.role === 1 ? 'ADMIN' : 'USER'
           });
         } else {
