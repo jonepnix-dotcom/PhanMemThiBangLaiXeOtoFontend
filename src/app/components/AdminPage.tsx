@@ -197,33 +197,36 @@ export const AdminPage: React.FC<AdminPageProps> = ({ questions, setQuestions, c
   // Admin: fetch questions from remote API and merge/replace local questions
   const fetchQuestionsFromServer = async () => {
     try {
-      const res = await fetch('http://localhost:3000/api/questions');
+      const res = await fetch('https://localhost:52207/api/CauHoi');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      if (!Array.isArray(data)) throw new Error('Invalid response');
+      const rawData = await res.json();
+      
+      const data = Array.isArray(rawData) ? rawData : (rawData.questions || rawData.data || rawData.items || []);
+      
+      if (!Array.isArray(data) || data.length === 0) throw new Error('Invalid response or empty data');
 
       const mapped: Question[] = data.map((q: any) => {
-        const options = Array.isArray(q.answers) ? q.answers.map((a: any) => a?.text ?? String(a)) : (q.options ?? []);
+        const options = Array.isArray(q.answers) ? q.answers.map((a: any) => a?.answerContent ?? String(a)) : [];
         let correctIndex = 0;
         if (Array.isArray(q.answers)) {
-          const idx = q.answers.findIndex((a: any) => a && (a.correct === true || a.isCorrect === true));
+          const idx = q.answers.findIndex((a: any) => a && a.isCorrect === true);
           if (idx !== -1) correctIndex = idx;
-        } else if (typeof q.correct === 'number') {
-          correctIndex = q.correct;
-        } else if (typeof q.correctAnswer === 'number') {
-          correctIndex = q.correctAnswer;
+        }
+
+        let chapterId = 1;
+        if (Array.isArray(q.categories) && q.categories.length > 0) {
+           chapterId = Number(q.categories[0]);
         }
 
         return {
           id: `api-${String(q.id)}`,
-          content: q.question ?? q.content ?? '',
+          content: q.questionContent ?? '',
           options,
           correctAnswer: Math.max(0, Math.min(correctIndex, options.length - 1)),
-          chapterId: Array.isArray(q.categoryIds) && q.categoryIds.length > 0 ? Number(q.categoryIds[0]) : (q.chapterId ?? 1),
-          isParalysis: !!q.isParalysis,
-          imageUrl: q.hinhanhqAlt ?? q.imageUrl,
+          chapterId,
+          isParalysis: !!q.isCritical,
+          imageUrl: q.imageUrl ?? '',
           explanation: q.explanation ?? '',
-          optionExplanations: q.optionExplanations ?? undefined,
         } as Question;
       });
 

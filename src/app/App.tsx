@@ -170,75 +170,54 @@ const App = () => {
     } catch {}
   }, [chapters]);
 
-  // On first load, fetch questions and chapters from remote API and merge into local state.
+  // Fetch questions from the new API and merge them into local state.
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const fetchAll = async () => {
       try {
-        const [resQ, resCh] = await Promise.all([
-          fetch('http://localhost:3000/api/questions'),
-          fetch('http://localhost:3000/api/chapters')
-        ]);
-
+        console.log('Fetching questions from API: https://localhost:52207/api/CauHoi');
+        // Fetch using the new API format
+        const res = await fetch('https://localhost:52207/api/CauHoi'); // Assuming API is running on this backend port for now
         let dataQ: any[] = [];
-        let dataCh: any[] = [];
 
-        if (resCh && resCh.ok) {
-          try { dataCh = await resCh.json(); } catch {}
+        if (res && res.ok) {
+          const rawData = await res.json();
+          console.log('API Raw Data:', rawData);
+          // Extract the array from the paginated response object (rawData.questions)
+          dataQ = Array.isArray(rawData) ? rawData : (rawData.questions || rawData.data || rawData.items || []);
+        } else {
+            console.error('API Error Response:', res.status, res.statusText);
         }
 
-        if (resQ && resQ.ok) {
-          try { dataQ = await resQ.json(); } catch {}
+        if (!Array.isArray(dataQ) || dataQ.length === 0) {
+            console.warn('No questions found or data is not an array.');
+            return;
         }
 
-        // Map chapters if provided
-        // NOTE: API chapters are 0-based; convert to 1-based ids for UI consistency (UI chapters 1..N)
-        let fetchedChapters = CHAPTERS;
-        if (Array.isArray(dataCh) && dataCh.length > 0) {
-          fetchedChapters = dataCh.map((c: any) => ({ id: Number(c.id) + 1, title: c.title ?? `Chương ${c.id}`, description: c.description ?? '', questionIds: Array.isArray(c.questionIds) ? c.questionIds.map((n: any) => Number(n)) : undefined }));
-          setChapters(fetchedChapters);
-        }
-
-        if (!Array.isArray(dataQ) || dataQ.length === 0) return;
-
-        // Build map from question numeric id -> chapter id (1-based) using fetchedChapters.questionIds
-        const qToChap = new Map<number, number>();
-        for (const ch of fetchedChapters) {
-          if (Array.isArray(ch.questionIds)) {
-            for (const qid of ch.questionIds) {
-              qToChap.set(Number(qid), ch.id);
-            }
-          }
-        }
-
+        console.log('Mapping', dataQ.length, 'questions...');
         const mapped: Question[] = dataQ.map((q: any) => {
-          const options = Array.isArray(q.answers) ? q.answers.map((a: any) => a?.text ?? String(a)) : (q.options ?? []);
+          const options = Array.isArray(q.answers) ? q.answers.map((a: any) => a?.answerContent ?? String(a)) : [];
           let correctIndex = 0;
           if (Array.isArray(q.answers)) {
-            const idx = q.answers.findIndex((a: any) => a && (a.correct === true || a.isCorrect === true));
+            const idx = q.answers.findIndex((a: any) => a && a.isCorrect === true);
             if (idx !== -1) correctIndex = idx;
-          } else if (typeof q.correct === 'number') {
-            correctIndex = q.correct;
-          } else if (typeof q.correctAnswer === 'number') {
-            correctIndex = q.correctAnswer;
           }
 
-          // Prefer explicit categoryIds from question (API likely 0-based so shift +1), otherwise use chapter mapping from chapters API
           let chapterId = 1;
-          if (Array.isArray(q.categoryIds) && q.categoryIds.length > 0) chapterId = Number(q.categoryIds[0]) + 1;
-          else if (qToChap.has(Number(q.id))) chapterId = qToChap.get(Number(q.id)) as number;
+          if (Array.isArray(q.categories) && q.categories.length > 0) {
+             chapterId = Number(q.categories[0]);
+          }
 
           return {
             id: `api-${String(q.id)}`,
-            content: q.question ?? q.content ?? '',
+            content: q.questionContent ?? '',
             options,
             correctAnswer: Math.max(0, Math.min(correctIndex, options.length - 1)),
             chapterId,
-            isParalysis: !!q.isParalysis,
-            imageUrl: q.hinhanhqAlt ?? q.imageUrl,
+            isParalysis: !!q.isCritical,
+            imageUrl: q.imageUrl ?? '',
             explanation: q.explanation ?? '',
-            optionExplanations: q.optionExplanations ?? undefined,
           } as Question;
         });
 
@@ -250,13 +229,15 @@ const App = () => {
           return merged;
         });
       } catch (err) {
-        console.warn('Failed to fetch questions/chapters from API', err);
+        console.warn('Failed to fetch questions from new API', err);
       }
     };
 
     fetchAll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+
 
   // Cross-tab / cross-window sync: broadcast changes and listen for updates
   useEffect(() => {
