@@ -445,7 +445,7 @@ const App = () => {
           return (
             <div className="flex items-center justify-center h-full">
               <button onClick={handleShowAuthPage}>
-                Vui lòng đăng nhập
+                Vui lòng đăng nhập để dùng chức năng này.
               </button>
             </div>
           );
