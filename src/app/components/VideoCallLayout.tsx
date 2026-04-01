@@ -61,15 +61,19 @@ const VideoCallLayout: React.FC<Props> = ({ onEndCall, onMinimize }) => {
 
                 <div className="controls">
                     <button onClick={() => setIsCamOn(!isCamOn)}>
-                        {isCamOn ? "Turn Off Cam" : "Turn On Cam"}
+                        {isCamOn ? "Tắt Camera" : "Bật Camera"}
                     </button>
 
                     <button onClick={() => setIsMicOn(!isMicOn)}>
-                        {isMicOn ? "Mute Mic" : "Unmute Mic"}
+                        {isMicOn ? "Tắt Mic" : "Bật Mic"}
                     </button>
 
                     <button onClick={() => setIsSharing(!isSharing)}>
-                        {isSharing ? "Stop Share" : "Share Screen"}
+                        {isSharing ? "Dừng Chia Sẻ" : "Chia Sẻ Màn Hình"}
+                    </button>
+
+                    <button >
+                        Xem Camera - Xem Màn Hình
                     </button>
 
                     <button
@@ -81,10 +85,10 @@ const VideoCallLayout: React.FC<Props> = ({ onEndCall, onMinimize }) => {
                         Test Voice
                     </button>
                     <button onClick={onMinimize}>
-                        🔽 Thu nhỏ
+                        Thu nhỏ màn hình
                     </button>
                     <button className="end-call" onClick={onEndCall}>
-                        End Call
+                        Kết Thúc Cuộc Gọi
                     </button>
                 </div>
             </div>
@@ -97,7 +101,7 @@ const VideoCallLayout: React.FC<Props> = ({ onEndCall, onMinimize }) => {
                             className={`auto-scroll-btn ${autoScroll ? "on" : "off"}`}
                             onClick={() => setAutoScroll(!autoScroll)}
                         >
-                            {autoScroll ? "Auto" : "Auto"}
+                            {autoScroll ? "Auto Scroll" : "Auto Scroll"}
                         </button>
                     </div>
                     <div className="messages">
