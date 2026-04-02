@@ -1,22 +1,23 @@
 import React, { useEffect, useState } from "react";
+import * as signalR from "@microsoft/signalr";
+import { url } from '../../env.js'
 
 interface ConsultationUserPageProps {
   setShowCall: (v: boolean) => void;
 }
 
 interface User {
-  id: number;
+  userId: string;
   name: string;
+  role: string;
+  isCalling: boolean;
 }
 
 export const ConsultationUserPage: React.FC<ConsultationUserPageProps> = ({ setShowCall }) => {
+  const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
   const [isOnline, setIsOnline] = useState(true);
+  const [users, setUsers] = useState<User[]>([]);
 
-  // Fake data user online
-  const [users, setUsers] = useState<User[]>([
-    { id: 1, name: "Nguyễn Văn A" },
-    { id: 2, name: "Trần Thị B" },
-  ]);
 
   // Banner images
   const banners = [
@@ -37,9 +38,62 @@ export const ConsultationUserPage: React.FC<ConsultationUserPageProps> = ({ setS
     return () => clearInterval(interval);
   }, []);
 
+  // Tạo connection
+  useEffect(() => {
+    const newConnection = new signalR.HubConnectionBuilder()
+      .withUrl(url + "consultationHub", {
+        accessTokenFactory: () => localStorage.getItem("accessToken") || ""
+      })
+      .withAutomaticReconnect()
+      .build();
 
-  const handleCall = (user: User) => {
-    alert(`Gọi đến ${user.name}`);
+    setConnection(newConnection);
+  }, []);
+
+  // Start connection + nhận realtime
+  useEffect(() => {
+    if (!connection) return;
+
+    connection.start()
+      .then(() => {
+        console.log("✅ SignalR connected");
+
+        // nhận danh sách online
+        connection.on("ReceiveOnlineUsers", (data: User[]) => {
+          setUsers(data);
+        });
+
+        // đăng ký online
+        if (isOnline) {
+          connection.invoke("Register");
+        }
+      })
+      .catch(err => console.error("❌ SignalR error:", err));
+
+    return () => {
+      connection.stop();
+    };
+  }, [connection]);
+
+  // Toggle online/offline
+  useEffect(() => {
+    if (!connection) return;
+
+    if (isOnline) {
+      connection.invoke("Register");
+    } else {
+      connection.invoke("SetOffline");
+      setUsers([]);
+    }
+  }, [isOnline]);
+
+  //  Gọi user
+  const handleCall = async (user: User) => {
+    if (!connection) return;
+
+    await connection.invoke("SetCalling", true);
+
+    alert(`📞 Gọi đến ${user.name}`);
   };
 
   return (
@@ -104,17 +158,29 @@ export const ConsultationUserPage: React.FC<ConsultationUserPageProps> = ({ setS
           </h2>
 
           <div className="flex-1 overflow-auto">
-            {users.length === 0 ? (
+            {!isOnline ? (
+              <div className="text-gray-500 text-center mt-10">
+                Bạn đang ngoại tuyến
+              </div>
+            ) : users.length === 0 ? (
               <div className="text-gray-500 text-center mt-10">
                 Không có quản lý trực tuyến
               </div>
             ) : (
               users.map((user) => (
                 <div
-                  key={user.id}
+                  key={user.userId}
                   className="flex justify-between items-center p-3 border-b"
                 >
-                  <span>{user.name}</span>
+                  <div className="flex flex-col">
+                    <span>{user.name}</span>
+                    {user.isCalling && (
+                      <span className="text-xs text-red-500">
+                        Đang gọi...
+                      </span>
+                    )}
+                  </div>
+
                   <button
                     onClick={() => handleCall(user)}
                     className="bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600"

@@ -437,15 +437,15 @@ const App = () => {
         return <ReviewPage questions={questions} />;
       case 'CONSULTATION':
         if (!isAuthenticated) {
-          // return (
-          //   <div className="flex items-center justify-center h-full">
-          //     <button onClick={handleShowAuthPage}>
-          //       Vui lòng đăng nhập để dùng chức năng này.
-          //     </button>
-          //   </div>
-          // );
+          return (
+            <div className="flex items-center justify-center h-full">
+              <button onClick={handleShowAuthPage}>
+                Vui lòng đăng nhập để dùng chức năng này.
+              </button>
+            </div>
+          );
 
-          return <ConsultationUserPage setShowCall={setShowCall} />;
+          //return <ConsultationUserPage setShowCall={setShowCall} />;
           //return <ConsultationAdminPage />;
         }
         if (userRole === 'ADMIN') {
