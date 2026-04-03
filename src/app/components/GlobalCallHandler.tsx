@@ -32,50 +32,29 @@ export const GlobalCallHandler: React.FC = () => {
 
     const handleIncomingCall = (data: any) => {
       if (!isMounted) return;
-      
+
       setIncomingCall(data);
       setIsRinging(true);
       audio.play().catch(console.error);
     };
 
-    const handleCallAccepted = () => {
+    const handleCallTimeoutForMe = () => {
       if (!isMounted) return;
-      // Có thể setShowCall(true) nếu bạn muốn tự động chuyển trang
-      audio.pause();
-      audio.currentTime = 0;
-      setIncomingCall(null);
-      setIsRinging(false);
-    };
 
-    const handleCallRejected = () => {
-      if (!isMounted) return;
       audio.pause();
       audio.currentTime = 0;
       setIncomingCall(null);
       setIsRinging(false);
-    };
-
-    const handleCallTimeout = () => {
-      if (!isMounted) return;
-      alert("⏳ Không có phản hồi từ người gọi");
-      audio.pause();
-      audio.currentTime = 0;
-      setIncomingCall(null);
-      setIsRinging(false);
+      alert("Cuộc gọi đã hết thời gian chờ. Người gọi không chờ nữa.");
     };
 
     // Đăng ký listener
     connection.on("IncomingCall", handleIncomingCall);
-    connection.on("CallAccepted", handleCallAccepted);
-    connection.on("CallRejected", handleCallRejected);
-    connection.on("CallTimeout", handleCallTimeout);
+    connection.on("CallTimeoutForReceiver", handleCallTimeoutForMe);
 
     return () => {
-      isMounted = false;
       connection.off("IncomingCall", handleIncomingCall);
-      connection.off("CallAccepted", handleCallAccepted);
-      connection.off("CallRejected", handleCallRejected);
-      connection.off("CallTimeout", handleCallTimeout);
+      connection.off("CallTimeoutForReceiver", handleCallTimeoutForMe);
     };
   }, [connection, audio]);
 

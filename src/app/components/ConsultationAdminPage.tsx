@@ -48,7 +48,8 @@ export const ConsultationAdminPage: React.FC<ConsultationAdminPageProps> = ({
     return () => clearInterval(interval);
   }, []);
 
-  // 🚀 Khởi tạo connection + lắng nghe ReceiveOnlineUsers
+  // 🚀 Khởi tạo connection + lắng nghe events
+  // 🚀 Khởi tạo connection + lắng nghe events
   useEffect(() => {
     if (!connection) return;
 
@@ -60,15 +61,16 @@ export const ConsultationAdminPage: React.FC<ConsultationAdminPageProps> = ({
           await connection.start();
         }
 
-        // Xóa listener cũ để tránh duplicate
+        // Off trước khi on (an toàn)
         connection.off("ReceiveOnlineUsers");
         connection.off("CallAccepted");
+        connection.off("CallRejected");
+        connection.off("CallTimeout");
 
         connection.on("ReceiveOnlineUsers", (onlineUsers: User[]) => {
           if (isMounted) setUsers(onlineUsers);
         });
 
-        // Khi ai đó accept cuộc gọi của mình
         connection.on("CallAccepted", () => {
           if (isMounted) {
             setShowCall(true);
@@ -76,7 +78,20 @@ export const ConsultationAdminPage: React.FC<ConsultationAdminPageProps> = ({
           }
         });
 
-        // Đăng ký online nếu đang ở trạng thái Online
+        connection.on("CallRejected", () => {
+          if (isMounted) {
+            setMeCalling(false);
+            // alert("Cuộc gọi bị từ chối"); // hoặc dùng toast
+          }
+        });
+
+        connection.on("CallTimeout", () => {
+          if (isMounted) {
+            setMeCalling(false);
+            alert("Cuộc gọi không có phản hồi (timeout)");
+          }
+        });
+
         if (isOnline) {
           await connection.invoke("Register");
         }
@@ -89,10 +104,13 @@ export const ConsultationAdminPage: React.FC<ConsultationAdminPageProps> = ({
 
     return () => {
       isMounted = false;
+      // Nên off bằng tên event là đủ ở đây vì ta kiểm soát chặt
       connection.off("ReceiveOnlineUsers");
       connection.off("CallAccepted");
+      connection.off("CallRejected");
+      connection.off("CallTimeout");
     };
-  }, [connection, isOnline, setShowCall]);
+  }, [connection, isOnline, setShowCall]);   // tạm giữ, nhưng nên tối ưu sau
 
   // 🔄 Toggle Online / Offline
   useEffect(() => {
@@ -133,14 +151,16 @@ export const ConsultationAdminPage: React.FC<ConsultationAdminPageProps> = ({
 
   // 📞 Gọi cho người dùng
   const handleCall = async (user: User) => {
-    if (!connection || !isOnline) return;
+    if (!connection || !isOnline || meCalling) return;
 
     setMeCalling(true);
+
     try {
       await connection.invoke("CallUser", user.userId);
+      // Không set false ở đây vì chờ server trả về Accepted/Rejected/Timeout
     } catch (err) {
       console.error("CallUser error:", err);
-      setMeCalling(false);
+      setMeCalling(false);           // quan trọng: lỗi ngay khi invoke cũng phải reset
     }
   };
 
@@ -159,18 +179,16 @@ export const ConsultationAdminPage: React.FC<ConsultationAdminPageProps> = ({
               <span className="absolute w-4 h-4 rounded-full bg-green-400 opacity-40 animate-ping" />
             )}
             <div
-              className={`w-4 h-4 rounded-full ${
-                isOnline ? "bg-green-500" : "bg-gray-400"
-              }`}
+              className={`w-4 h-4 rounded-full ${isOnline ? "bg-green-500" : "bg-gray-400"
+                }`}
             />
           </div>
 
           {/* Toggle Button */}
           <button
             onClick={() => setIsOnline((prev) => !prev)}
-            className={`w-24 h-10 rounded-xl text-white font-semibold transition-colors ${
-              isOnline ? "bg-green-500 hover:bg-green-600" : "bg-gray-400 hover:bg-gray-500"
-            }`}
+            className={`w-24 h-10 rounded-xl text-white font-semibold transition-colors ${isOnline ? "bg-green-500 hover:bg-green-600" : "bg-gray-400 hover:bg-gray-500"
+              }`}
           >
             {isOnline ? "Online" : "Offline"}
           </button>
@@ -208,11 +226,10 @@ export const ConsultationAdminPage: React.FC<ConsultationAdminPageProps> = ({
                   <button
                     disabled={user.isCalling || meCalling}
                     onClick={() => handleCall(user)}
-                    className={`px-4 py-1.5 rounded-lg text-white font-medium transition ${
-                      user.isCalling || meCalling
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-blue-500 hover:bg-blue-600"
-                    }`}
+                    className={`px-4 py-1.5 rounded-lg text-white font-medium transition ${user.isCalling || meCalling
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-blue-500 hover:bg-blue-600"
+                      }`}
                   >
                     {user.isCalling || meCalling ? "Bận" : "Gọi"}
                   </button>
@@ -230,9 +247,8 @@ export const ConsultationAdminPage: React.FC<ConsultationAdminPageProps> = ({
                 key={index}
                 src={img}
                 alt={`banner-${index}`}
-                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
-                  index === currentIndex ? "opacity-100" : "opacity-0"
-                }`}
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${index === currentIndex ? "opacity-100" : "opacity-0"
+                  }`}
               />
             ))}
           </div>
