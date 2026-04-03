@@ -22,6 +22,7 @@ import { Chapter, CHAPTERS } from '@/app/types'; // Ensure Chapter and CHAPTERS 
 
 import CallPopup from "./components/CallPopup";
 import { url } from '../env.js';
+import { GlobalCallHandler } from "./components/GlobalCallHandler";
 
 // Định nghĩa các trang chính
 type PageKey = 'HOME' | 'INTRO' | 'THI' | 'REVIEW' | 'CONSULTATION' | 'DOCS' | 'PROFILE' | 'HISTORY' | 'PRIVACY' | 'CONTACT' | 'ADMIN';
@@ -101,7 +102,7 @@ const App = () => {
         const role = localStorage.getItem('userRole');
         let storedName = localStorage.getItem('userName');
         let storedEmail = localStorage.getItem('userEmail');
-        
+
         if (storedName === 'undefined') storedName = null;
         if (storedEmail === 'undefined') storedEmail = null;
 
@@ -122,7 +123,7 @@ const App = () => {
                 try {
                   if (storedName && storedName !== 'undefined') localStorage.setItem('userName', storedName);
                   if (storedEmail && storedEmail !== 'undefined') localStorage.setItem('userEmail', storedEmail);
-                } catch (e) {}
+                } catch (e) { }
               }
             } catch (e) {
               // ignore fetch errors
@@ -185,9 +186,9 @@ const App = () => {
 
     const fetchAll = async () => {
       try {
-  console.log('Fetching questions from API:', url + 'api/CauHoi');
-  // Fetch using the new API format
-  const res = await fetch(url + 'api/CauHoi'); // Assuming API is running on this backend URL for now
+        console.log('Fetching questions from API:', url + 'api/CauHoi');
+        // Fetch using the new API format
+        const res = await fetch(url + 'api/CauHoi'); // Assuming API is running on this backend URL for now
         let dataQ: any[] = [];
 
         if (res && res.ok) {
@@ -356,7 +357,7 @@ const App = () => {
       localStorage.setItem('userName', validUser.name);
       localStorage.setItem('userEmail', validUser.email);
       localStorage.setItem('userRole', validUser.role);
-    } catch (e) {}
+    } catch (e) { }
     setShowAuthPage(false);
   };
 
@@ -445,8 +446,8 @@ const App = () => {
 
         }
         if (userRole === 'ADMIN') {
-          return <ConsultationAdminPage 
-            setShowCall={setShowCall}/>;
+          return <ConsultationAdminPage
+            setShowCall={setShowCall} />;
         }
         return (
           <ConsultationUserPage
@@ -655,7 +656,7 @@ const App = () => {
           setIsMinimized={setIsMinimized}
         />
       )}
-
+      <GlobalCallHandler />
       {/* Footer removed - app uses full-height content */}
     </div>
   );
