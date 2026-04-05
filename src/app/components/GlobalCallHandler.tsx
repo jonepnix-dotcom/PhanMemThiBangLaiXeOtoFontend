@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import ringSound from "../../assets/ring.mp3";
 import { useSignalR } from "../contexts/SignalRContext";
-import VideoCallLayout from "./VideoCallLayout";   // ← import trực tiếp
+import VideoCallLayout from "./VideoCallLayout";
 
 export const GlobalCallHandler: React.FC = () => {
   const { incomingCall, acceptCall, rejectCall, isInCall, endCall, meCalling, cancelCall } = useSignalR();

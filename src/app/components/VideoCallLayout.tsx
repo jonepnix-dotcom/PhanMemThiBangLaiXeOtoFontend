@@ -1,10 +1,8 @@
 import React, { useState, useRef, useEffect, KeyboardEvent } from "react";
 import "../../styles/VideoCallLayout.css";
+import { useSignalR } from "../contexts/SignalRContext";
 
-interface Message {
-    text: string;
-    fromUser: boolean; // true = user, false = API/other
-}
+
 
 interface Props {
     onEndCall: () => void;
@@ -12,6 +10,7 @@ interface Props {
 }
 
 const VideoCallLayout: React.FC<Props> = ({ onEndCall, onMinimize }) => {
+
 
     const [autoScroll, setAutoScroll] = useState(true); // chế độ auto-scroll
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -24,34 +23,36 @@ const VideoCallLayout: React.FC<Props> = ({ onEndCall, onMinimize }) => {
     const [otherSpeaking, setOtherSpeaking] = useState(false);
 
     // Chat
-    const [messages, setMessages] = useState<Message[]>([]);
+
+
+
+    const { chatMessages, sendMessage: sendMessageFromContext } = useSignalR();
+
     const [inputText, setInputText] = useState("");
 
-    const sendMessage = () => {
+    const handleSendMessage = () => {
         if (!inputText.trim()) return;
 
-        // Gửi message từ user
-        setMessages([...messages, { text: inputText, fromUser: true }]);
-        setInputText("");
+        const text = inputText.trim();
 
-        // Giả lập nhận tin nhắn từ API/other sau 1s
-        setTimeout(() => {
-            setMessages((prev) => [
-                ...prev,
-                { text: "Reply: " + inputText, fromUser: false },
-            ]);
-        }, 1000);
+        // Gửi tin nhắn thật lên server
+        sendMessageFromContext(text);
+
+        // Xóa ô nhập
+        setInputText("");
     };
 
     const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Enter") sendMessage();
+        if (e.key === "Enter") handleSendMessage();
     };
+
+
 
     useEffect(() => {
         if (autoScroll) {
             messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
         }
-    }, [messages, autoScroll]);
+    }, [chatMessages, autoScroll]);
 
     return (
         <div className="call-container">
@@ -105,14 +106,18 @@ const VideoCallLayout: React.FC<Props> = ({ onEndCall, onMinimize }) => {
                         </button>
                     </div>
                     <div className="messages">
-                        {messages.map((msg, idx) => (
-                            <div
-                                key={idx}
-                                className={`message ${msg.fromUser ? "left" : "right"}`}
-                            >
-                                {msg.text}
-                            </div>
-                        ))}
+                        {chatMessages.map((msg, idx) => {
+                            const isMyMessage = msg.fromUserId === "me" || msg.fromName === "Bạn";
+
+                            return (
+                                <div
+                                    key={idx}
+                                    className={`message ${isMyMessage ? "left" : "right"}`}
+                                >
+                                    <strong>{msg.fromName}:</strong> {msg.text}
+                                </div>
+                            );
+                        })}
                         <div ref={messagesEndRef} />
                     </div>
                     <div className="chat-input">
@@ -123,7 +128,7 @@ const VideoCallLayout: React.FC<Props> = ({ onEndCall, onMinimize }) => {
                             onKeyDown={handleKeyPress}
                             placeholder="Nhập tin nhắn..."
                         />
-                        <button onClick={sendMessage} className="send-btn">
+                        <button onClick={handleSendMessage} className="send-btn">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 viewBox="0 0 24 24"

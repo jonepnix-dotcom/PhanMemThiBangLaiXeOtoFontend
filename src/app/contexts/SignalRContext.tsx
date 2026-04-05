@@ -19,7 +19,13 @@ interface User {
 interface IncomingCallData {
     fromUserId: string;
     fromName: string;
-    // thêm các field khác nếu server trả về
+}
+
+interface ChatMessage {
+    text: string;
+    fromUserId: string;
+    fromName: string;
+    timestamp: string;
 }
 
 interface SignalRContextType {
@@ -35,6 +41,8 @@ interface SignalRContextType {
     endCall: () => Promise<void>;
     cancelCall: () => Promise<void>;
     isConnected: boolean;
+    chatMessages: ChatMessage[];
+    sendMessage: (message: string) => Promise<void>;
 }
 
 const SignalRContext = createContext<SignalRContextType | null>(null);
@@ -43,6 +51,10 @@ export const SignalRProvider: React.FC<{
     children: ReactNode;
     isAuthenticated: boolean;
 }> = ({ children, isAuthenticated }) => {
+
+    //Chat
+    const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+    //
     const connection = getSignalRConnection();
 
     const [users, setUsers] = useState<User[]>([]);
@@ -106,7 +118,8 @@ export const SignalRProvider: React.FC<{
             "CallTimeout",
             "IncomingCall",
             "CallTimeoutForReceiver",
-            "CallEnded"
+            "CallEnded",
+            "ReceiveMessage"
         ];
 
         events.forEach(event => {
@@ -159,9 +172,15 @@ export const SignalRProvider: React.FC<{
 
         connection.on("CallEnded", () => {
             if (!isMountedRef.current) return;
-
-            console.log("📴 Nhận được CallEnded từ server");
             setIsInCall(false);
+        });
+
+        connection.on("ReceiveMessage", (message: any) => {
+            if (!isMountedRef.current) return;
+            if (message.fromUserId === "me") return;   // Bỏ qua tin của chính mình
+
+
+            setChatMessages(prev => [...prev, message]);
         });
 
         // Cleanup khi effect unmount
@@ -258,7 +277,28 @@ export const SignalRProvider: React.FC<{
             setIsInCall(false);
         }
     };
+    // Thêm hàm gửi tin nhắn
+    const sendMessage = async (message: string) => {
+        if (!connection || !message.trim()) return;
 
+        const trimmedMessage = message.trim();
+
+        const myMessage = {
+            text: trimmedMessage,
+            fromUserId: "me",
+            fromName: "Bạn",
+            timestamp: new Date().toISOString()
+        };
+
+        setChatMessages(prev => [...prev, myMessage]);
+
+        try {
+            await connection.invoke("SendMessage", trimmedMessage);
+        } catch (err) {
+            console.error("SendMessage error:", err);
+            // Nếu lỗi, có thể xóa tin nhắn vừa thêm (tùy chọn)
+        }
+    };
     // Cleanup khi logout hoặc unmount
     useEffect(() => {
         if (!isAuthenticated) {
@@ -283,6 +323,8 @@ export const SignalRProvider: React.FC<{
         endCall,
         cancelCall,
         isConnected,
+        chatMessages,
+        sendMessage,
     };
 
     return <SignalRContext.Provider value={value}>{children}</SignalRContext.Provider>;
