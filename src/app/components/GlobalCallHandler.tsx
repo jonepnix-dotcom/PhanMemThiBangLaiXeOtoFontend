@@ -7,6 +7,8 @@ import VideoCallLayout from "./VideoCallLayout";
 export const GlobalCallHandler: React.FC = () => {
   const { incomingCall, acceptCall, rejectCall, isInCall, endCall, meCalling, cancelCall } = useSignalR();
 
+  const [currentTargetUserId, setCurrentTargetUserId] = useState<string | null>(null);
+
   const [isMinimized, setIsMinimized] = useState(false);
   const hasHandledRef = useRef(false);
   // ==================== Audio Ring ====================
@@ -48,6 +50,7 @@ export const GlobalCallHandler: React.FC = () => {
     if (!incomingCall) return;
     audio.pause();
     audio.currentTime = 0;
+    setCurrentTargetUserId(incomingCall.fromUserId);
     await acceptCall();
   };
 
@@ -69,6 +72,7 @@ export const GlobalCallHandler: React.FC = () => {
   const handleEndCall = async () => {
     console.log("🛑 [GlobalCallHandler] User clicked End Call - Calling server...");
     setIsMinimized(false);
+    setCurrentTargetUserId(null);
     await endCall();        // hàm từ Context
   };
 

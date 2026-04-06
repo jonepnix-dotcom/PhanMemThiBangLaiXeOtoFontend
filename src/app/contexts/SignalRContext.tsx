@@ -34,6 +34,9 @@ interface SignalRContextType {
     meCalling: boolean;
     incomingCall: IncomingCallData | null;
     isInCall: boolean;
+    currentCallPartnerId: string | null;
+    currentCallCallerId: string | null;
+    callRole: "caller" | "receiver" | null;
     toggleOnline: () => Promise<void>;
     callUser: (userId: string) => Promise<void>;
     acceptCall: () => Promise<void>;
@@ -43,6 +46,11 @@ interface SignalRContextType {
     isConnected: boolean;
     chatMessages: ChatMessage[];
     sendMessage: (message: string) => Promise<void>;
+    connection: any;
+
+    sendOffer: (data: { sdp: any; toUserId: string }) => Promise<void>;
+    sendAnswer: (data: { sdp: any; toUserId: string }) => Promise<void>;
+    sendIceCandidate: (data: { candidate: any; toUserId: string }) => Promise<void>;
 }
 
 const SignalRContext = createContext<SignalRContextType | null>(null);
@@ -66,6 +74,9 @@ export const SignalRProvider: React.FC<{
     const [incomingCall, setIncomingCall] = useState<IncomingCallData | null>(null);
     const [isInCall, setIsInCall] = useState(false);
     const [isConnected, setIsConnected] = useState(false);
+    const [currentCallPartnerId, setCurrentCallPartnerId] = useState<string | null>(null);
+    const [callRole, setCallRole] = useState<"caller" | "receiver" | null>(null);
+    const [currentCallCallerId, setCurrentCallCallerId] = useState<string | null>(null);
 
     const isMountedRef = useRef(true);
     const hasRegisteredRef = useRef(false);
@@ -132,12 +143,35 @@ export const SignalRProvider: React.FC<{
             if (isMountedRef.current) setUsers(onlineUsers);
         });
 
-        connection.on("CallAccepted", () => {
-            if (isMountedRef.current) {
-                setMeCalling(false);
-                setIsInCall(true);
-                console.log("📞 Cuộc gọi đã được chấp nhận - Mở CallLayout");
+        connection.on("CallAccepted", (data: any) => {
+            if (!isMountedRef.current) return;
+
+            console.log("📞 Cuộc gọi đã được chấp nhận", data);
+
+            const myUserId = localStorage.getItem("userId");
+
+            let partnerId = null;
+            let callRole: "caller" | "receiver";
+
+            if (data.fromUserId === myUserId) {
+                // 👉 mình là receiver
+                partnerId = data.targetUserId;
+                callRole = "receiver";
+            } else {
+                // 👉 mình là caller
+                partnerId = data.fromUserId;
+                callRole = "caller";
             }
+
+            // 👇 caller luôn là targetUserId (theo backend của bạn)
+            const callerId = data.targetUserId;
+
+            setCurrentCallPartnerId(partnerId);
+            setCurrentCallCallerId(callerId);   // ✅ luôn đúng
+            setCallRole(callRole);              // ⭐ QUAN TRỌNG
+
+            setMeCalling(false);
+            setIsInCall(true);
         });
 
         connection.on("CallRejected", () => {
@@ -272,6 +306,8 @@ export const SignalRProvider: React.FC<{
             console.log("🔴 [Context] Invoking EndCall to server...");
             await connection.invoke("EndCall");
             console.log("✅ [Context] EndCall invoked successfully");
+
+            setIsInCall(false);
         } catch (err) {
             console.error("❌ EndCall invoke error:", err);
             setIsInCall(false);
@@ -296,7 +332,6 @@ export const SignalRProvider: React.FC<{
             await connection.invoke("SendMessage", trimmedMessage);
         } catch (err) {
             console.error("SendMessage error:", err);
-            // Nếu lỗi, có thể xóa tin nhắn vừa thêm (tùy chọn)
         }
     };
     // Cleanup khi logout hoặc unmount
@@ -316,6 +351,9 @@ export const SignalRProvider: React.FC<{
         meCalling,
         incomingCall,
         isInCall,
+        currentCallPartnerId,
+        currentCallCallerId,
+        callRole,
         toggleOnline,
         callUser,
         acceptCall,
@@ -325,6 +363,26 @@ export const SignalRProvider: React.FC<{
         isConnected,
         chatMessages,
         sendMessage,
+        connection,
+
+        sendOffer: async ({ sdp, toUserId }) => {
+            await connection.invoke("SendOffer", toUserId, sdp);
+            console.log("🚀 invoke SendOffer", toUserId, sdp);
+        },
+
+        sendAnswer: async ({ sdp, toUserId }) => {
+            await connection.invoke("SendAnswer", toUserId, sdp);
+        },
+
+        sendIceCandidate: async ({ candidate, toUserId }) => {
+            await connection.invoke(
+                "SendIceCandidate",
+                toUserId,
+                candidate.candidate,
+                candidate.sdpMid,
+                candidate.sdpMLineIndex
+            );
+        },
     };
 
     return <SignalRContext.Provider value={value}>{children}</SignalRContext.Provider>;

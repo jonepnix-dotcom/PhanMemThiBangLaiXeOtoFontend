@@ -55,6 +55,7 @@ export const AuthPage = ({ onLogin, onNavigateToPrivacy, onBack }: AuthPageProps
           // Lưu token vào localStorage
           localStorage.setItem('accessToken', data.accessToken);
           localStorage.setItem('userRole', data.role === 1 ? 'ADMIN' : 'USER');
+          localStorage.setItem('userId', data.userId);
           
           onLogin({
             name: data.name || data.username || formData.name || 'Người dùng',
