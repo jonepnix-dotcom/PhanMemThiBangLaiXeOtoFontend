@@ -87,8 +87,18 @@ const App = () => {
   });
   const [resetKey, setResetKey] = useState(0);
 
-  // Database questions state
-  const [questions, setQuestions] = useState<Question[]>([]);
+  // Database questions state (persisted to sessionStorage)
+  const [questions, setQuestions] = useState<Question[]>(() => {
+    try {
+      const raw = typeof window !== 'undefined' ? window.sessionStorage.getItem('questions') : null;
+      if (!raw) return [];
+      const parsed = JSON.parse(raw) as Question[];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (err) {
+      console.error('Failed to load questions from sessionStorage', err);
+      return [];
+    }
+  });
   // Load session on startup: restore token, role and user profile (if available)
   useEffect(() => {
     const init = async () => {
@@ -226,7 +236,10 @@ const App = () => {
           } as Question;
         });
 
-        try { window.localStorage.removeItem('questions'); } catch {}
+        try { 
+          window.localStorage.removeItem('questions'); 
+          window.sessionStorage.setItem('questions', JSON.stringify(mapped));
+        } catch {}
         setQuestions(mapped);
       } catch (err) {
         console.warn('Failed to fetch questions from new API', err);
