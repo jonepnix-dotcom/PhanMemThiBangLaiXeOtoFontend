@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Home, FileText, Facebook, Twitter, Instagram, Mail, LogIn, User as UserIcon, LogOut, CheckSquare, Book, Shield, Info, Menu, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
-import logoImage from '@/assets/logo.svg';
+import logoImage from '@/assets/logo.png';
 import userAvatar from '@/assets/avatar.svg';
 import pageBackground from '@/assets/background-main.png';
 import { AuthPage } from '@/app/components/AuthPage';
@@ -461,10 +461,32 @@ const App = () => {
       case 'CONSULTATION':
         if (!isAuthenticated) {
           return (
-            <div className="flex items-center justify-center h-full">
-              <button onClick={handleShowAuthPage}>
-                Vui lòng đăng nhập để dùng chức năng này.
-              </button>
+            <div className="flex items-center justify-center min-h-[calc(100vh-100px)] animate-fade-in-up">
+              <div className="bg-white p-10 rounded-2xl shadow-xl max-w-md w-full text-center border border-gray-100 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 to-cyan-400"></div>
+                <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Shield size={40} className="text-blue-500" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-3">Yêu cầu đăng nhập</h2>
+                <p className="text-gray-500 mb-8 leading-relaxed">
+                  Tính năng <span className="font-semibold text-blue-600">Tư vấn trực tuyến</span> chỉ dành cho học viên đã đăng ký. Vui lòng đăng nhập để trao đổi trực tiếp với Quản trị viên của chúng tôi.
+                </p>
+                <div className="flex flex-col gap-3">
+                  <button
+                    onClick={handleShowAuthPage}
+                    className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold py-3 px-6 rounded-xl shadow-md transition-all duration-300 flex items-center justify-center gap-2 group"
+                  >
+                    <LogIn size={20} className="group-hover:-translate-x-1 transition-transform" />
+                    <span>Đăng nhập ngay</span>
+                  </button>
+                  <button
+                    onClick={() => handlePageChange('HOME')}
+                    className="w-full bg-gray-50 hover:bg-gray-100 text-gray-600 font-medium py-3 px-6 rounded-xl transition-all duration-300"
+                  >
+                    Quay lại trang chủ
+                  </button>
+                </div>
+              </div>
             </div>
           );
         }
@@ -544,14 +566,21 @@ const App = () => {
           className="flex items-center gap-2 md:gap-4 cursor-pointer hover:opacity-80 transition-opacity"
           onClick={() => handlePageChange('HOME')}
         >
-          <img
-            src={logoImage}
-            alt="Group 3 .NET Tech"
-            className="h-10 w-10 md:h-12 md:w-12 object-cover rounded-xl shadow-md border-2 border-white"
-          />
-          <span className="font-extrabold text-base md:text-xl tracking-tight bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent sm:block">
-            GROUP 3 .NET TECH
-          </span>
+          <div className="h-10 w-10 md:h-12 md:w-12 rounded-full shadow-md border-2 border-white overflow-hidden flex items-center justify-center bg-white shrink-0">
+            <img
+              src={logoImage}
+              alt="Nhóm 3 - Công nghệ .NET9"
+              className="h-full w-full object-cover"
+            />
+          </div>
+          <div className="flex flex-col justify-center">
+            <span className="font-extrabold text-lg md:text-2xl tracking-tight bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent sm:block uppercase">
+              NHÓM 3
+            </span>
+            <span className="text-xs md:text-sm font-semibold tracking-wide text-gray-500 hidden sm:block">
+              CÔNG NGHỆ .NET9
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center gap-2 md:gap-6">

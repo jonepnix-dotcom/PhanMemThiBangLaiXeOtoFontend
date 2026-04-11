@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { LogIn, UserPlus, Mail, Lock, User, Eye, EyeOff, ArrowRight, AlertCircle, ArrowLeft } from 'lucide-react';
-import logoImage from '@/assets/logo.svg';
+import logoImage from '@/assets/logo.png';
 import {url} from '../../env.js'
 
 interface AuthPageProps {
@@ -17,6 +17,7 @@ export const AuthPage = ({ onLogin, onNavigateToPrivacy, onBack }: AuthPageProps
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -29,6 +30,18 @@ export const AuthPage = ({ onLogin, onNavigateToPrivacy, onBack }: AuthPageProps
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccessMsg(null);
+    
+    // Kiểm tra bỏ trống
+    if (!formData.name.trim() || !formData.password.trim()) {
+      setError('Không được bỏ trống các thông tin bắt buộc.');
+      return;
+    }
+    if (!isLogin && !formData.confirmPassword.trim()) {
+      setError('Vui lòng nhập xác nhận mật khẩu.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -87,7 +100,14 @@ export const AuthPage = ({ onLogin, onNavigateToPrivacy, onBack }: AuthPageProps
           throw new Error(errorData.message || 'Đăng ký thất bại. Vui lòng thử lại.');
         }
 
-        // Đăng ký thành công, bạn có thể tự động gọi đăng nhập hoặc hiển thị thông báo
+        // Đăng ký thành công, thông báo rồi chuyển tab đăng nhập
+        setSuccessMsg('Đăng ký thành công! Vui lòng đăng nhập để tiếp tục.');
+        setIsLogin(true);
+        setFormData({
+          ...formData, // Giữ lại name để user tiện đăng nhập luôn
+          password: '',
+          confirmPassword: ''
+        });
       }
     } catch (err: any) {
       setError(err.message || 'Đã có lỗi xảy ra');
@@ -114,9 +134,18 @@ export const AuthPage = ({ onLogin, onNavigateToPrivacy, onBack }: AuthPageProps
         <div className="absolute inset-0 bg-gradient-to-t from-blue-950/90 via-blue-900/50 to-blue-900/80 z-0"></div>
 
         {/* Brand */}
-        <div className="relative z-10 flex items-center gap-3">
-          <img src={logoImage} alt="Logo" className="h-10 brightness-0 invert" />
-          <span className="text-xl font-bold tracking-wider">GROUP 3 .NET</span>
+        <div className="relative z-10 flex items-center gap-4 animate-fade-in">
+          <div className="h-12 w-12 rounded-full shadow-lg border-2 border-white/20 overflow-hidden flex items-center justify-center bg-white">
+            <img src={logoImage} alt="Nhóm 3 - Công nghệ .NET9" className="h-full w-full object-cover" />
+          </div>
+          <div className="flex flex-col">
+            <span className="font-extrabold text-2xl tracking-tighter text-white uppercase">
+              NHÓM 3
+            </span>
+            <span className="text-sm font-semibold tracking-widest text-blue-200">
+              CÔNG NGHỆ .NET9
+            </span>
+          </div>
         </div>
 
         {/* Slogan */}
@@ -159,11 +188,21 @@ export const AuthPage = ({ onLogin, onNavigateToPrivacy, onBack }: AuthPageProps
           <div className="w-full max-w-md animate-fade-in">
             {/* Mobile Logo & Title */}
             <div className="text-center mb-8 lg:mb-10">
-              <img 
-                src={logoImage} 
-                alt="Group 3 .NET Tech" 
-                className="h-16 mx-auto mb-4 object-contain lg:hidden" 
-              />
+              <div className="h-16 w-16 mx-auto mb-2 rounded-full shadow-md lg:hidden overflow-hidden flex items-center justify-center bg-white">
+                <img 
+                  src={logoImage} 
+                  alt="Nhóm 3 - Công nghệ .NET9" 
+                  className="h-full w-full object-cover" 
+                />
+              </div>
+              <div className="flex flex-col items-center justify-center mb-6 lg:hidden">
+                <span className="font-extrabold text-2xl tracking-tight bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent">
+                  NHÓM 3
+                </span>
+                <span className="text-sm font-semibold tracking-wide text-gray-500">
+                  CÔNG NGHỆ .NET9
+                </span>
+              </div>
               <h1 className="text-3xl font-bold text-blue-950 mb-2">
                 {isLogin ? 'Chào mừng trở lại' : 'Tạo tài khoản mới'}
               </h1>
@@ -180,10 +219,23 @@ export const AuthPage = ({ onLogin, onNavigateToPrivacy, onBack }: AuthPageProps
               </div>
             )}
 
+            {/* Success Alert */}
+            {successMsg && (
+              <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-lg mb-6 flex items-start gap-3 animate-fade-in">
+                <AlertCircle size={20} className="mt-0.5 flex-shrink-0" />
+                <p className="text-sm">{successMsg}</p>
+              </div>
+            )}
+
             {/* Tab Switch */}
             <div className="flex gap-2 mb-8 bg-gray-50 p-1 rounded-xl">
               <button
-                onClick={() => setIsLogin(true)}
+                type="button"
+                onClick={() => {
+                  setIsLogin(true);
+                  setError(null);
+                  setSuccessMsg(null);
+                }}
                 className={`flex-1 py-2.5 px-4 rounded-lg font-semibold transition-all duration-300 ${
                   isLogin
                     ? 'bg-white text-blue-700 shadow-sm'
@@ -196,7 +248,12 @@ export const AuthPage = ({ onLogin, onNavigateToPrivacy, onBack }: AuthPageProps
                 </div>
               </button>
               <button
-                onClick={() => setIsLogin(false)}
+                type="button"
+                onClick={() => {
+                  setIsLogin(false);
+                  setError(null);
+                  setSuccessMsg(null);
+                }}
                 className={`flex-1 py-2.5 px-4 rounded-lg font-semibold transition-all duration-300 ${
                   !isLogin
                     ? 'bg-white text-blue-700 shadow-sm'

@@ -130,16 +130,15 @@ export const DocumentsPage: React.FC = () => {
                   transition={{ delay: index * 0.05 }}
                   className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-blue-200 transition-all group flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
                 >
-                  <div className="flex items-start gap-4 min-w-0 flex-1">
+                  <div className="flex items-start gap-4 min-w-0 flex-1 w-full">
                     <div className="p-3 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-colors shrink-0">
                       <FileText size={24} />
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="font-semibold text-lg text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                    <div className="min-w-0 flex-1 w-full">
+                      <h3 className="font-semibold text-lg text-gray-900 group-hover:text-blue-600 transition-colors break-words line-clamp-2">
                         {d.name}
                       </h3>
-                      <p className="text-sm text-gray-500 truncate mt-1">{d.link}</p>
-                      <div className="flex items-center gap-2 mt-2 text-xs text-gray-400">
+                      <div className="flex items-center gap-2 mt-2 text-xs text-gray-400 flex-wrap">
                         <span>Đăng lúc: {new Date(d.createdAt).toLocaleDateString('vi-VN', {
                           year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
                         })}</span>
@@ -185,11 +184,11 @@ export const DocumentsPage: React.FC = () => {
                 className="bg-white w-full max-w-5xl h-[85vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col"
               >
                 <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className="p-2 bg-blue-100 text-blue-600 rounded-lg shrink-0">
                       <FileText size={20} />
                     </div>
-                    <h3 className="font-semibold text-gray-900 truncate">{viewDoc.name}</h3>
+                    <h3 className="font-semibold text-gray-900 truncate w-full">{viewDoc.name}</h3>
                   </div>
                   <div className="flex items-center gap-2 shrink-0 ml-4">
                     <button 
