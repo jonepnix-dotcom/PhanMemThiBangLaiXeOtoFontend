@@ -154,7 +154,7 @@ const PolicySection = ({ icon, title, children, delay = 0 }: PolicySectionProps)
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay }}
-      className="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:shadow-lg transition-shadow"
+      className="bg-white rounded-xl shadow-md border border-gray-200 p-3 sm:p-6 hover:shadow-lg transition-shadow"
     >
       <div className="flex items-center gap-3 mb-4">
         {icon}

@@ -296,7 +296,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ questions, setQuestions, c
       <div className="flex h-screen bg-gray-50 overflow-hidden">
         {/* Left Sidebar */}
       <aside className="w-64 bg-white border-r border-gray-200 flex-col hidden md:flex z-50">
-        <div className="p-6 border-b border-gray-100 flex items-center gap-3">
+        <div className="p-3 sm:p-6 border-b border-gray-100 flex items-center gap-3">
           <div className="p-2 bg-blue-600 rounded-lg">
             <Settings className="w-5 h-5 text-white" />
           </div>
@@ -339,7 +339,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ questions, setQuestions, c
                 transition={{ delay: 0.1 }}
                 className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden"
               >
-                <div className="p-6 sm:p-8 border-b border-gray-100 bg-white flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div className="p-3 sm:p-6 sm:p-8 border-b border-gray-100 bg-white flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                   <div className="flex items-center gap-3">
                     <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
                       <BookOpen size={24} />
@@ -375,7 +375,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ questions, setQuestions, c
                   </div>
                 </div>
 
-                <div className="p-6 sm:p-8 bg-gray-50/50">
+                <div className="p-3 sm:p-6 sm:p-8 bg-gray-50/50">
                   {/* Filters */}
                   <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-6 flex flex-col md:flex-row gap-4 items-center">
                     <div className="relative flex-1 w-full">
@@ -514,7 +514,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ questions, setQuestions, c
 
             {/* Review Chapters Management */}
             {adminTab === 'exams' && (
-              <motion.div className="p-6 sm:p-8 bg-white rounded-3xl shadow-sm border border-gray-100">
+              <motion.div className="p-3 sm:p-6 sm:p-8 bg-white rounded-3xl shadow-sm border border-gray-100">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h3 className="text-lg font-bold text-gray-900">Quản lý nội dung Ôn Tập / Đề Thi</h3>
@@ -526,9 +526,9 @@ export const AdminPage: React.FC<AdminPageProps> = ({ questions, setQuestions, c
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:p-6 mt-6">
                   {reviewChapters.map(rc => (
-                    <div key={rc.id} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-4">
+                    <div key={rc.id} className="bg-white p-3 sm:p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-4">
                       <div className="flex justify-between items-start">
                         <div>
                           <div className="text-xl font-bold text-gray-900">{rc.title}</div>
@@ -562,7 +562,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ questions, setQuestions, c
       {isEditing && (
         <motion.div 
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-gray-900/80 backdrop-blur-sm"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-3 sm:p-6 bg-gray-900/80 backdrop-blur-sm"
         >
             <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -570,7 +570,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ questions, setQuestions, c
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
                 className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden"
             >
-                <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 shrink-0">
+                <div className="p-3 sm:p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 shrink-0">
                     <div className="flex items-center gap-3">
                       <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
                         {currentQuestion.id ? <Edit size={20} /> : <Plus size={20} />}
@@ -584,9 +584,9 @@ export const AdminPage: React.FC<AdminPageProps> = ({ questions, setQuestions, c
                     </button>
                 </div>
 
-                <div className="p-6 space-y-8 overflow-y-auto flex-1">
+                <div className="p-3 sm:p-6 space-y-8 overflow-y-auto flex-1">
                     {/* Chapter & Type */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:p-6">
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Chương</label>
                             <select
@@ -734,7 +734,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ questions, setQuestions, c
                     </div>
                 </div>
 
-                <div className="p-6 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50 shrink-0">
+                <div className="p-3 sm:p-6 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50 shrink-0">
                     <button
                         onClick={() => setIsEditing(false)}
                         className="px-6 py-3 text-gray-600 font-medium hover:bg-gray-200 rounded-xl transition-colors"
@@ -762,7 +762,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ questions, setQuestions, c
                   <h3 className="font-semibold text-lg">{editingReview.id ? 'Chỉnh sửa chương ôn tập' : 'Thêm chương'}</h3>
                   <button onClick={() => setIsReviewModalOpen(false)} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg"><X size={18} /></button>
                 </div>
-                <div className="p-6 space-y-4">
+                <div className="p-3 sm:p-6 space-y-4">
                   <div>
                     <label className="block text-sm text-gray-600 mb-2">ID</label>
                     <input type="number" value={editingReview.id} onChange={(e) => setEditingReview({...editingReview, id: Number(e.target.value)})} className="w-full px-4 py-2 border rounded-lg" />
@@ -798,7 +798,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ questions, setQuestions, c
         {isImageGalleryOpen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
             <motion.div initial={{ scale: 0.98, opacity: 0, y: 10 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.98, opacity: 0, y: 10 }} className="bg-white w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
-              <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
+              <div className="p-3 sm:p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
                 <div>
                   <h3 className="font-bold text-xl text-gray-800 flex items-center gap-2">
                     <ImageIcon className="text-blue-600" /> Thư viện hình ảnh trên máy chủ
@@ -810,7 +810,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ questions, setQuestions, c
                 </button>
               </div>
               
-              <div className="p-6 overflow-y-auto flex-1 bg-gray-50/50">
+              <div className="p-3 sm:p-6 overflow-y-auto flex-1 bg-gray-50/50">
                 {isLoadingImages ? (
                   <div className="flex flex-col items-center justify-center py-20 h-full">
                      <Loader2 className="w-10 h-10 text-blue-500 animate-spin mb-4" />
@@ -825,7 +825,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ questions, setQuestions, c
                     <p className="text-gray-500 max-w-sm mx-auto">Chưa có hình ảnh nào trên máy chủ hoặc API lấy danh sách ảnh (api/images) chưa được cấu hình trả về dữ liệu.</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
                     {serverImages.map((imgName, idx) => (
                       <button
                         key={idx}

@@ -97,7 +97,7 @@ export const ReviewGame: React.FC<ReviewGameProps> = ({ examTitle, questions, on
       </div>
 
       <div className="flex-1 flex flex-col md:flex-row">
-        <div className="flex-1 p-6 md:p-8 overflow-y-auto">
+        <div className="flex-1 p-3 sm:p-6 md:p-8 overflow-y-auto">
           <div className="mb-6">
             <span className="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-bold mb-3">
               Câu {currentQuestionIndex + 1}

@@ -151,7 +151,7 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
           <p className="text-white/90 drop-shadow">Học theo từng chương để nắm vững kiến thức luật giao thông đường bộ</p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-2 gap-2 md:gap-4 sm:p-6">
           {REVIEW_CHAPTERS.map((chapter) => {
             const apiCount = apiCounts.get(chapter.id);
             const displayDetail = (typeof apiCount === 'number' && apiCount > 0) ? `${apiCount} câu` : chapter.detail;
@@ -159,25 +159,25 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
             <button 
               key={chapter.id}
               onClick={() => setSelectedChapter(chapter)}
-              className="bg-white p-6 rounded-xl shadow-md hover:shadow-xl border border-gray-100 hover:border-blue-200 transition-all duration-300 flex flex-col gap-4 hover:-translate-y-1 group text-left h-full"
+              className="bg-white p-2 md:p-6 rounded-xl shadow-md hover:shadow-xl border border-gray-100 hover:border-blue-200 transition-all duration-300 flex flex-col gap-4 hover:-translate-y-1 group text-left h-full"
             >
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform flex-shrink-0">
+              <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4">
+                <div className="w-10 h-10 md:w-14 md:h-14 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform flex-shrink-0">
                   {chapter.icon}
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                  <h3 className="text-[12px] md:text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
                     {chapter.title}
                   </h3>
                 </div>
               </div>
               
-              <p className="text-gray-700 text-sm leading-relaxed flex-1">
+              <p className="text-gray-700 text-[10px] md:text-sm leading-relaxed flex-1">
                 {chapter.topic}
               </p>
               
               <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-2">
-                <span className="text-xs text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded">
+                <span className="text-[9px] md:text-xs text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded">
                   {displayDetail}
                 </span>
                 <ArrowLeft className="w-5 h-5 text-gray-400 group-hover:text-blue-600 rotate-180 transition-all" />
@@ -189,20 +189,20 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
           {/* Nút Các câu hay liệt */}
           <button 
             onClick={() => setShowParalysisOnly(true)}
-            className="bg-white p-6 rounded-xl shadow-md hover:shadow-xl border border-gray-100 hover:border-red-200 transition-all duration-300 flex flex-col gap-4 hover:-translate-y-1 group text-left h-full"
+            className="bg-white p-2 md:p-6 rounded-xl shadow-md hover:shadow-xl border border-gray-100 hover:border-red-200 transition-all duration-300 flex flex-col gap-4 hover:-translate-y-1 group text-left h-full"
           >
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-gradient-to-br from-red-50 to-red-100 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform flex-shrink-0">
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4">
+              <div className="w-10 h-10 md:w-14 md:h-14 bg-gradient-to-br from-red-50 to-red-100 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform flex-shrink-0">
                 <AlertCircle size={32} className="text-red-500" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-bold text-gray-900 group-hover:text-red-600 transition-colors">
+                <h3 className="text-[12px] md:text-lg font-bold text-gray-900 group-hover:text-red-600 transition-colors">
                   Các câu điểm liệt
                 </h3>
               </div>
             </div>
             
-            <p className="text-gray-700 text-sm leading-relaxed flex-1">
+            <p className="text-gray-700 text-[10px] md:text-sm leading-relaxed flex-1">
               Tổng hợp các câu hỏi điểm liệt quan trọng
             </p>
             
@@ -220,20 +220,20 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
               const chap = REVIEW_CHAPTERS.find(c => c.id === 6);
               if (chap) setSelectedChapter(chap as any);
             }}
-            className="bg-white p-6 rounded-xl shadow-md hover:shadow-xl border border-gray-100 hover:border-orange-200 transition-all duration-300 flex flex-col gap-4 hover:-translate-y-1 group text-left h-full"
+            className="bg-white p-2 md:p-6 rounded-xl shadow-md hover:shadow-xl border border-gray-100 hover:border-orange-200 transition-all duration-300 flex flex-col gap-4 hover:-translate-y-1 group text-left h-full"
           >
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform flex-shrink-0">
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4">
+              <div className="w-10 h-10 md:w-14 md:h-14 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform flex-shrink-0">
                 <AlertTriangle size={32} className="text-orange-500" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-bold text-gray-900 group-hover:text-orange-600 transition-colors">
+                <h3 className="text-[12px] md:text-lg font-bold text-gray-900 group-hover:text-orange-600 transition-colors">
                   Câu hỏi Biển báo
                 </h3>
               </div>
             </div>
 
-            <p className="text-gray-700 text-sm leading-relaxed flex-1">
+            <p className="text-gray-700 text-[10px] md:text-sm leading-relaxed flex-1">
               Tổng hợp các câu hỏi về hệ thống biển báo đường bộ
             </p>
 
@@ -251,20 +251,20 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
               const chap = REVIEW_CHAPTERS.find(c => c.id === 7);
               if (chap) setSelectedChapter(chap as any);
             }}
-            className="bg-white p-6 rounded-xl shadow-md hover:shadow-xl border border-gray-100 hover:border-purple-200 transition-all duration-300 flex flex-col gap-4 hover:-translate-y-1 group text-left h-full"
+            className="bg-white p-2 md:p-6 rounded-xl shadow-md hover:shadow-xl border border-gray-100 hover:border-purple-200 transition-all duration-300 flex flex-col gap-4 hover:-translate-y-1 group text-left h-full"
           >
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform flex-shrink-0">
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4">
+              <div className="w-10 h-10 md:w-14 md:h-14 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform flex-shrink-0">
                 <MapIcon size={32} className="text-purple-500" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-bold text-gray-900 group-hover:text-purple-600 transition-colors">
+                <h3 className="text-[12px] md:text-lg font-bold text-gray-900 group-hover:text-purple-600 transition-colors">
                   Câu hỏi Tình huống
                 </h3>
               </div>
             </div>
 
-            <p className="text-gray-700 text-sm leading-relaxed flex-1">
+            <p className="text-gray-700 text-[10px] md:text-sm leading-relaxed flex-1">
               Câu hỏi tình huống và các thế sa hình để luyện kỹ năng xử lý
             </p>
 

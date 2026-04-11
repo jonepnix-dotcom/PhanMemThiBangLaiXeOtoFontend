@@ -66,7 +66,7 @@ export const ContactPage = ({ onBackToHome }: ContactPageProps) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:shadow-lg transition-shadow"
+              className="bg-white rounded-xl shadow-md border border-gray-200 p-3 sm:p-6 hover:shadow-lg transition-shadow"
             >
               <div className="flex items-center gap-3 mb-4">
                 <MessageSquare className="text-blue-600" size={24} />
@@ -82,7 +82,7 @@ export const ContactPage = ({ onBackToHome }: ContactPageProps) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:shadow-lg transition-shadow"
+              className="bg-white rounded-xl shadow-md border border-gray-200 p-3 sm:p-6 hover:shadow-lg transition-shadow"
             >
               <div className="flex items-center gap-3 mb-4">
                 <Phone className="text-green-600" size={24} />
@@ -129,7 +129,7 @@ export const ContactPage = ({ onBackToHome }: ContactPageProps) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl shadow-lg p-6"
+              className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl shadow-lg p-3 sm:p-6"
             >
               <div className="flex items-center gap-3 mb-4">
                 <Clock className="text-white" size={24} />
@@ -148,7 +148,7 @@ export const ContactPage = ({ onBackToHome }: ContactPageProps) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:shadow-lg transition-shadow sticky top-24"
+              className="bg-white rounded-xl shadow-md border border-gray-200 p-3 sm:p-6 hover:shadow-lg transition-shadow sticky top-24"
             >
               <div className="flex items-center gap-3 mb-6">
                 <Send className="text-cyan-600" size={24} />

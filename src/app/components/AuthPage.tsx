@@ -173,7 +173,7 @@ export const AuthPage = ({ onLogin, onNavigateToPrivacy, onBack }: AuthPageProps
       <div className="w-full lg:w-1/2 flex flex-col relative bg-white">
         
         {/* Top bar with back button */}
-        <div className="absolute top-6 left-6 md:top-8 md:left-8 z-10">
+        <div className="absolute top-3 sm:p-6 left-6 md:top-8 md:left-8 z-10">
           <button
             type="button"
             onClick={() => onBack ? onBack() : window.history.back()}
@@ -184,7 +184,7 @@ export const AuthPage = ({ onLogin, onNavigateToPrivacy, onBack }: AuthPageProps
           </button>
         </div>
 
-        <div className="flex-1 flex flex-col justify-center items-center p-6 sm:p-12 mt-12 lg:mt-0">
+        <div className="flex-1 flex flex-col justify-center items-center p-3 sm:p-6 sm:p-12 mt-12 lg:mt-0">
           <div className="w-full max-w-md animate-fade-in">
             {/* Mobile Logo & Title */}
             <div className="text-center mb-8 lg:mb-10">

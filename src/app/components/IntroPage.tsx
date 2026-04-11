@@ -71,7 +71,7 @@ const IntroPage: React.FC<IntroPageProps> = ({ onNavigateToThi, onNavigateToDocs
             <h2 className="text-4xl font-extrabold mt-2 text-gray-900">Mục tiêu của chúng tôi</h2>
             <div className="w-24 h-1.5 bg-blue-500 rounded-full mx-auto mt-6"></div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 gap-4 md:gap-8 lg:grid-cols-4">
           <GoalCard icon={"📱"} title="Số hóa toàn diện" desc="Cập nhật 600 câu hỏi, biển báo và sa hình mới nhất theo chuẩn Bộ GTVT." />
           <GoalCard icon={"⏱️"} title="Thi thử thực tế" desc="Thuật toán trộn đề ngẫu nhiên, áp lực thời gian như kỳ thi thật." />
           <GoalCard icon={"🧠"} title="Học hiểu bản chất" desc="Giải thích chi tiết từng câu, loại bỏ tư duy học vẹt." />
@@ -92,18 +92,18 @@ const IntroPage: React.FC<IntroPageProps> = ({ onNavigateToThi, onNavigateToDocs
             >
               {Array.from({ length: totalSlides }, (_, i) => `slide-group-${i}`).map((groupId, slideIndex) => {
                 const membersInSlide = TEAM_MEMBERS.slice(slideIndex * itemsPerSlide, (slideIndex + 1) * itemsPerSlide);
-                let gridClass = 'grid-cols-1 md:grid-cols-3';
+                let gridClass = 'grid-cols-2 md:grid-cols-3';
                 if (membersInSlide.length === 1) {
                   gridClass = 'max-w-sm';
                 } else if (membersInSlide.length === 2) {
-                  gridClass = 'max-w-3xl grid-cols-1 md:grid-cols-2';
+                  gridClass = 'max-w-3xl grid-cols-2 md:grid-cols-2';
                 }
                 
                 return (
                   <div key={groupId} className="w-full shrink-0 flex justify-center px-2 sm:px-4">
-                    <div className={`grid gap-6 w-full ${gridClass}`}>
+                    <div className={`grid gap-3 sm:p-6 w-full ${gridClass}`}>
                       {membersInSlide.map((member) => (
-                        <div key={member.role} className="bg-white rounded-2xl p-6 text-center shadow-lg hover:-translate-y-2 transition-transform duration-300">
+                        <div key={member.role} className="bg-white rounded-2xl p-3 sm:p-6 text-center shadow-lg hover:-translate-y-2 transition-transform duration-300">
                           <div className={`w-20 h-20 rounded-full bg-gradient-to-br ${member.color} mx-auto flex items-center justify-center text-white font-bold text-2xl shadow-md border-4 border-white -mt-12`}>
                             {member.initials}
                           </div>
@@ -147,34 +147,34 @@ const IntroPage: React.FC<IntroPageProps> = ({ onNavigateToThi, onNavigateToDocs
               </div>
               
               <ul className="space-y-6">
-                <li className="flex items-start bg-white p-5 rounded-2xl shadow-md border-l-4 border-l-blue-500 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
+                <li className="flex items-start bg-white p-3 sm:p-5 rounded-2xl shadow-md border-l-4 border-l-blue-500 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center shrink-0 mr-5 shadow-sm">
                     <span className="text-blue-600 font-bold text-lg">✔</span>
                   </div>
                   <div>
-                    <h4 className="font-bold text-gray-900 text-xl tracking-tight">Backend API</h4>
-                    <p className="text-gray-600 mt-2 leading-relaxed">ASP.NET Core Web API mạnh mẽ, bảo mật.</p>
+                    <h4 className="font-bold text-gray-900 text-base sm:text-xl tracking-tight">Backend API</h4>
+                    <p className="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2 leading-relaxed">ASP.NET Core Web API mạnh mẽ, bảo mật.</p>
                   </div>
                 </li>
-                <li className="flex items-start bg-white p-5 rounded-2xl shadow-md border-l-4 border-l-blue-500 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
+                <li className="flex items-start bg-white p-3 sm:p-5 rounded-2xl shadow-md border-l-4 border-l-blue-500 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center shrink-0 mr-5 shadow-sm">
                     <span className="text-blue-600 font-bold text-lg">✔</span>
                   </div>
                   <div>
-                    <h4 className="font-bold text-gray-900 text-xl tracking-tight">Phần mềm đa nền tảng</h4>
-                    <p className="text-gray-600 mt-2 leading-relaxed">Giao diện hiện đại phát triển bằng React & .NET MAUI.</p>
+                    <h4 className="font-bold text-gray-900 text-base sm:text-xl tracking-tight">Phần mềm đa nền tảng</h4>
+                    <p className="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2 leading-relaxed">Giao diện hiện đại phát triển bằng React & .NET MAUI.</p>
                   </div>
                 </li>
-                <li className="flex items-start bg-white p-5 rounded-2xl shadow-md border-l-4 border-l-blue-500 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
+                <li className="flex items-start bg-white p-3 sm:p-5 rounded-2xl shadow-md border-l-4 border-l-blue-500 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center shrink-0 mr-5 shadow-sm">
                     <span className="text-blue-600 font-bold text-lg">✔</span>
                   </div>
                   <div>
-                    <h4 className="font-bold text-gray-900 text-xl tracking-tight">Trải nghiệm Offline</h4>
-                    <p className="text-gray-600 mt-2 leading-relaxed">Tính năng đồng bộ cục bộ, ôn tập mọi lúc mọi nơi không cần Wifi.</p>
+                    <h4 className="font-bold text-gray-900 text-base sm:text-xl tracking-tight">Trải nghiệm Offline</h4>
+                    <p className="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2 leading-relaxed">Tính năng đồng bộ cục bộ, ôn tập mọi lúc mọi nơi không cần Wifi.</p>
                   </div>
                 </li>
               </ul>

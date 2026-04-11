@@ -104,7 +104,7 @@ export const DocumentsPage: React.FC = () => {
         </motion.div>
 
         {/* Documents List */}
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <AnimatePresence>
             {filteredDocs.length === 0 ? (
               <motion.div 
@@ -128,17 +128,17 @@ export const DocumentsPage: React.FC = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ delay: index * 0.05 }}
-                  className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-blue-200 transition-all group flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                  className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:-translate-y-1 hover:border-blue-400 transition-all group flex flex-col justify-between gap-4 h-full"
                 >
-                  <div className="flex items-start gap-4 min-w-0 flex-1 w-full">
+                  <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-3 sm:gap-4 min-w-0 w-full mb-4">
                     <div className="p-3 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-colors shrink-0">
                       <FileText size={24} />
                     </div>
                     <div className="min-w-0 flex-1 w-full">
-                      <h3 className="font-semibold text-lg text-gray-900 group-hover:text-blue-600 transition-colors break-words line-clamp-2">
+                      <h3 className="font-semibold text-lg text-gray-900 group-hover:text-blue-600 transition-colors break-words line-clamp-2 text-base sm:text-lg">
                         {d.name}
                       </h3>
-                      <div className="flex items-center gap-2 mt-2 text-xs text-gray-400 flex-wrap">
+                      <div className="flex flex-wrap justify-center sm:justify-start gap-1 sm:gap-2 mt-2 text-xs text-gray-400 flex-wrap">
                         <span>Đăng lúc: {new Date(d.createdAt).toLocaleDateString('vi-VN', {
                           year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
                         })}</span>
@@ -146,13 +146,13 @@ export const DocumentsPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 w-full sm:w-auto justify-end border-t sm:border-t-0 pt-4 sm:pt-0 border-gray-100">
+                  <div className="flex items-center gap-2 w-full justify-between border-t pt-4 border-gray-100 mt-auto">
                     <button 
                       onClick={() => setViewDoc(d)} 
                       className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors"
                     >
                       <Eye size={16} />
-                      <span className="sm:hidden">Xem</span>
+                      <span>Xem</span>
                     </button>
                     <button 
                       onClick={() => handleDownload(d.link, d.name)} 
@@ -175,7 +175,7 @@ export const DocumentsPage: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-gray-900/80 backdrop-blur-sm"
+              className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-3 sm:p-6 bg-gray-900/80 backdrop-blur-sm"
             >
               <motion.div 
                 initial={{ scale: 0.95, opacity: 0, y: 20 }}

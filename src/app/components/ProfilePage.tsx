@@ -29,7 +29,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userName, userEmail, o
             <span className="font-medium">Quay về Trang Chủ</span>
           </button>
           
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3 sm:p-6">
             <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-xl overflow-hidden border-4 border-white">
               <img 
                 src={userAvatar}
@@ -57,7 +57,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userName, userEmail, o
           </h2>
           
           <div className="bg-white p-8 rounded-2xl shadow-lg border-2 border-blue-100">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:p-6">
               {/* Họ và tên */}
               <div className="flex items-start gap-4">
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">

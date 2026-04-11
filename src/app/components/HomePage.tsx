@@ -79,7 +79,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateToThi, onNavigateT
             className="hidden lg:block w-[400px]"
           >
             {/* Floating Card */}
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-2xl text-white shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500">
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 p-3 sm:p-6 rounded-2xl text-white shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500">
                <div className="flex items-center gap-4 mb-4">
                  <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
                    <ShieldCheck size={24} className="text-white" />
@@ -168,7 +168,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateToThi, onNavigateT
   <p className="text-white/90 mt-4">Cấu trúc đề thi và điều kiện đậu cho từng hạng bằng.</p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:p-6">
             <ExamCard 
               title="Hạng B1" 
               questions="30 câu" 
@@ -204,7 +204,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateToThi, onNavigateT
           </div>
 
           {/* Critical Question Warning */}
-          <div className="mt-12 bg-red-50 border-l-4 border-red-500 p-6 rounded-r-xl flex items-start gap-4 shadow-sm max-w-4xl mx-auto">
+          <div className="mt-12 bg-red-50 border-l-4 border-red-500 p-3 sm:p-6 rounded-r-xl flex items-start gap-4 shadow-sm max-w-4xl mx-auto">
             <div className="bg-red-100 p-2 rounded-full">
               <AlertTriangle className="text-red-600" size={24} />
             </div>
@@ -232,7 +232,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateToThi, onNavigateT
                 <br/><br/>
                 Nguồn dữ liệu: Chuẩn hóa theo dữ liệu công khai của Tổng cục Đường bộ Việt Nam.
               </p>
-              <div className="bg-blue-50 p-6 rounded-xl border border-blue-100">
+              <div className="bg-blue-50 p-3 sm:p-6 rounded-xl border border-blue-100">
                  <h4 className="font-bold text-blue-900 mb-2">Phân loại kiến thức</h4>
                  <ul className="space-y-2 text-sm text-gray-700">
                     <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div> Khái niệm và quy tắc giao thông</li>
@@ -245,7 +245,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateToThi, onNavigateT
               </div>
             </div>
             
-            <div className="lg:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="lg:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-3 sm:p-6">
                <div className="relative h-[400px] rounded-2xl overflow-hidden shadow-lg group">
                   <motion.img
                     src="https://images.unsplash.com/photo-1549916028-5fe07973a5c5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0cmFmZmljJTIwc2lnbnMlMjByb2FkJTIwc2FmZXR5fGVufDF8fHx8MTc3MDE2MzU1M3ww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
@@ -312,7 +312,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateToThi, onNavigateT
                <Zap className="text-yellow-500" />
                Tính năng ôn tập thông minh
              </h3>
-             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:p-6">
                <div className="flex items-start gap-3">
                  <div className="bg-blue-100 p-2 rounded-lg text-blue-600 mt-1">
                    <Clock size={18} />
@@ -386,7 +386,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateToThi, onNavigateT
 };
 
 const ExamCard = ({ title, questions, time, passScore, icon, color }: { title: string, questions: string, time: string, passScore: string, icon: React.ReactNode, color: string }) => (
-  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+  <div className="bg-white p-3 sm:p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
     <div className={`w-12 h-12 ${color} rounded-lg flex items-center justify-center text-white mb-4 shadow-lg shadow-${color}/30`}>
       {icon}
     </div>
@@ -409,7 +409,7 @@ const ExamCard = ({ title, questions, time, passScore, icon, color }: { title: s
 );
 
 const StepCard = ({ step, title, description }: { step: string, title: string, description: string }) => (
-  <div className="relative p-6 bg-white rounded-xl border border-gray-100 shadow-sm hover:border-blue-200 transition-colors">
+  <div className="relative p-3 sm:p-6 bg-white rounded-xl border border-gray-100 shadow-sm hover:border-blue-200 transition-colors">
     <div className="absolute -top-4 -left-4 w-10 h-10 bg-white text-blue-600 rounded-full flex items-center justify-center font-bold shadow-md text-lg">
       {step}
     </div>

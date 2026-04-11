@@ -80,3 +80,7 @@
 - **Bảo mật & Điều hướng (App.tsx Routing):** 
   - Thiết lập Router Guard bảo vệ trang Admin (`/admin`). Kiểm tra chặt chẽ token và quyền hạn (`role === 'ADMIN'`) từ local storage.
   - Tự động điều hướng (Force Redirect) về `/home` ngay lập tức nếu người dùng không phải là Admin hoặc chưa đăng nhập mà cố tình truy cập vào đường dẫn trang quản trị.
+
+### Cập nhật mới nhất
+- **Tối ưu hóa tải dữ liệu (App.tsx)**: Chuyển sang cơ chế tải toàn bộ 600 câu hỏi từ 7 API cùng lúc khi khởi động ứng dụng để tăng tốc độ trải nghiệm.
+- **Giao diện Ôn tập (QuizGame & ReviewPage)**: Bổ sung hiển thị chi tiết tên chương và chủ đề trực tiếp trên màn hình làm bài, giúp người dùng dễ dàng theo dõi thư mục đang học.

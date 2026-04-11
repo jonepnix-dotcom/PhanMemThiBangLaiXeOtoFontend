@@ -354,7 +354,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
           </div>
         </div>
 
-        <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-center">
+        <div className="p-3 sm:p-6 bg-gray-50 border-t border-gray-100 flex justify-center">
           <button 
             onClick={onExit}
             className="flex items-center gap-2 px-8 py-3 bg-gray-800 text-white rounded-xl font-bold hover:bg-gray-900 transition-all"
@@ -418,7 +418,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
         </div>
 
         {/* Timer & Info (PC ONLY - since mobile has it in header) */}
-        <div className="hidden md:block p-6 border-b border-gray-200 bg-white">
+        <div className="hidden md:block p-3 sm:p-6 border-b border-gray-200 bg-white">
           <div className="flex justify-between items-center mb-4 text-gray-500">
             <span className="text-sm font-semibold uppercase tracking-wider">Thời gian còn lại</span>
             <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded font-bold">
@@ -435,7 +435,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
         </div>
 
         {/* Question List Grid */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-6 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+        <div className="flex-1 overflow-y-auto p-4 md:p-3 sm:p-6 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
           <h4 className="hidden md:flex font-bold text-gray-500 text-xs uppercase tracking-wider mb-4 items-center justify-between">
             <span>Danh sách câu hỏi</span>
             <span className="text-gray-400">{Object.keys(selectedAnswers).length}/{totalQuestions}</span>
@@ -498,7 +498,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
         </div>
         
         {/* Submit Actions (PC ONLY) */}
-        <div className="hidden md:block p-6 border-t border-gray-200 bg-white backdrop-blur-sm mt-auto z-10 bottom-0 sticky">
+        <div className="hidden md:block p-3 sm:p-6 border-t border-gray-200 bg-white backdrop-blur-sm mt-auto z-10 bottom-0 sticky">
           <button
             onClick={handleSubmit}
             className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-green-600 hover:bg-green-500 text-white rounded-xl font-bold shadow-lg shadow-green-600/30 transition-all hover:-translate-y-0.5"
@@ -542,7 +542,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
             </div>
 
             {/* Vertical Flow View: Question -> Image -> Options */}
-            <div className="flex flex-col gap-6 md:gap-8 mb-8 max-w-4xl w-full mx-auto">
+            <div className="flex flex-col gap-3 sm:p-6 md:gap-8 mb-8 max-w-4xl w-full mx-auto">
               
               {/* 1. Question Text */}
               <h3 className="text-xl md:text-2xl font-bold text-gray-800 leading-snug md:leading-relaxed">

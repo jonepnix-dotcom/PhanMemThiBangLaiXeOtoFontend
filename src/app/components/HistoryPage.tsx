@@ -62,8 +62,8 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ userName, onBackToHome
       <h2 className="text-2xl font-bold text-gray-900 mb-3">Chưa Có Lịch Sử Làm Bài</h2>
       <p className="text-gray-600 text-lg mb-8 max-w-md mx-auto">Bạn chưa hoàn thành bài thi nào. Hãy bắt đầu làm bài để xem kết quả tại đây!</p>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto mt-8">
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:p-6 max-w-3xl mx-auto mt-8">
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-3 sm:p-6 rounded-xl">
           <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center mx-auto mb-3">
             <BookOpen size={24} className="text-white" />
           </div>
@@ -71,7 +71,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ userName, onBackToHome
           <p className="text-3xl font-bold text-gray-900">0</p>
         </div>
 
-        <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl">
+        <div className="bg-gradient-to-br from-green-50 to-green-100 p-3 sm:p-6 rounded-xl">
           <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center mx-auto mb-3">
             <Award size={24} className="text-white" />
           </div>
@@ -79,7 +79,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ userName, onBackToHome
           <p className="text-3xl font-bold text-gray-900">0</p>
         </div>
 
-        <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-xl">
+        <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-3 sm:p-6 rounded-xl">
           <div className="w-12 h-12 bg-orange-600 rounded-lg flex items-center justify-center mx-auto mb-3">
             <Clock size={24} className="text-white" />
           </div>
@@ -97,7 +97,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ userName, onBackToHome
       </button>
     </div>
   ) : (
-    <div className="bg-white rounded-2xl shadow-lg border-2 border-blue-100 p-6">
+    <div className="bg-white rounded-2xl shadow-lg border-2 border-blue-100 p-3 sm:p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl font-bold">Tổng quan</h2>
@@ -153,7 +153,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ userName, onBackToHome
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-50">
       {retryQuestions ? (
-        <div className="fixed inset-0 z-50 bg-white p-6 overflow-auto">
+        <div className="fixed inset-0 z-50 bg-white p-3 sm:p-6 overflow-auto">
           <QuizGame
             examTitle={`Làm lại: ${retryQuestions.length} câu sai`}
             questions={retryQuestions}
@@ -163,7 +163,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ userName, onBackToHome
       ) : null}
 
       {viewAttempt ? (
-        <div className="fixed inset-0 z-50 bg-white p-6 overflow-auto">
+        <div className="fixed inset-0 z-50 bg-white p-3 sm:p-6 overflow-auto">
           <QuizGame
             examTitle={viewAttempt.examTitle}
             questions={viewAttempt.questions || []}

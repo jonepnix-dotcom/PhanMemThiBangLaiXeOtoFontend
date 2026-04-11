@@ -301,7 +301,7 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
             {isLoadingLicenses ? (
               <div className="col-span-full flex justify-center items-center py-10">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
@@ -312,27 +312,27 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
                 key={license.code}
                 onClick={() => handleStartExamByLicense(license)}
                 className={`
-                  bg-white p-6 md:p-8 rounded-2xl border-2 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl text-left group
+                  bg-white p-3 md:p-6 lg:p-8 rounded-2xl border-2 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl text-left group
                   ${license.border} hover:border-current flex flex-col justify-between block w-full
                   ${license.colSpan}
                 `}
               >
                 <div>
                   <div className="flex items-start justify-between mb-5">
-                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${license.bg} ${license.color} transform group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
+                    <div className={`w-10 h-10 md:w-14 md:h-14 rounded-xl flex items-center justify-center ${license.bg} ${license.color} transform group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
                       {getLicenseIcon(license.code)}
                     </div>
                     <div className="flex flex-col items-end gap-2">
-                       <span className={`px-3 py-1 rounded-md text-sm font-bold ${license.bg} ${license.color}`}>
+                       <span className={`px-3 py-1 rounded-md text-[10px] md:text-sm font-bold ${license.bg} ${license.color}`}>
                         {license.code}
                       </span>
-                      <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded-md whitespace-nowrap">
+                      <span className="text-[9px] md:text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded-md whitespace-nowrap">
                         {license.stats}
                       </span>
                     </div>
                   </div>
                   
-                  <h3 className={`text-2xl font-bold group-hover:text-current text-gray-900 mb-2`}>
+                  <h3 className={`text-lg md:text-2xl font-bold group-hover:text-current text-gray-900 mb-2`}>
                     {license.name}
                   </h3>
                   
@@ -341,7 +341,7 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
                   </p>
                 </div>
                 
-                <div className="flex items-center text-xs font-bold text-gray-400 group-hover:text-current transition-colors mt-4 pt-3 border-t border-gray-100 w-full">
+                <div className="flex items-center text-[10px] md:text-xs font-bold text-gray-400 group-hover:text-current transition-colors mt-2 md:mt-4 pt-2 md:pt-3 border-t border-gray-100 w-full">
                   <span>Vào thi ngay</span>
                   <ArrowLeft className="w-4 h-4 ml-2 rotate-180 transition-transform group-hover:translate-x-2" />
                 </div>
@@ -358,7 +358,7 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
         </div>
 
         {/* Phần 2: Hành động nhanh (Thi thử & Lịch sử) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-2 md:grid-cols-2 gap-2 md:gap-4 mb-4">
           {/* Card Thi Thử */}
           <button 
             onClick={async () => {
@@ -439,20 +439,20 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
                 topic: "Thời gian: 22 phút - 30 câu hỏi (Sinh tự động)" 
               });
             }}
-            className="bg-gradient-to-br from-blue-600 to-blue-500 rounded-2xl p-6 text-white shadow-lg hover:shadow-blue-500/40 transform hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group text-left"
+            className="bg-gradient-to-br from-blue-600 to-blue-500 rounded-2xl p-3 sm:p-6 text-white shadow-lg hover:shadow-blue-500/40 transform hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group text-left"
           >
-            <div className="absolute top-0 right-0 p-6 opacity-20 transform group-hover:scale-110 transition-transform duration-500">
-              <PlayCircle size={90} />
+            <div className="absolute top-0 right-0 p-3 sm:p-6 opacity-20 transform group-hover:scale-110 transition-transform duration-500">
+              <PlayCircle className="w-16 h-16 md:w-24 md:h-24 opacity-50 md:opacity-100" />
             </div>
             <div className="relative z-10">
-              <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center mb-4">
-                <PlayCircle size={28} className="text-white" />
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center mb-4">
+                <PlayCircle className="w-5 h-5 md:w-7 md:h-7 text-white" />
               </div>
-              <h3 className="text-2xl font-bold mb-2">Thi Thử Ngẫu Nhiên</h3>
-              <p className="text-blue-100 text-sm mb-4 max-w-md line-clamp-2">
+              <h3 className="text-base md:text-2xl font-bold mb-1 md:mb-2">Thi Thử Ngẫu Nhiên</h3>
+              <p className="text-blue-100 text-[10px] md:text-sm mb-2 md:mb-4 max-w-md line-clamp-2">
                 Làm bài thi được tạo ngẫu nhiên giống như thi thật.
               </p>
-              <div className="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-xl backdrop-blur-sm transition-colors text-sm font-semibold">
+              <div className="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 px-2 py-1.5 md:px-4 md:py-2 rounded-lg md:rounded-xl backdrop-blur-sm transition-colors text-[10px] md:text-sm font-semibold">
                 Bắt đầu ngay <ArrowLeft className="w-4 h-4 rotate-180" />
               </div>
             </div>
@@ -467,22 +467,22 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
                 onShowAuth();
               }
             }}
-            className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group text-left"
+            className="bg-white rounded-2xl p-3 sm:p-6 border border-gray-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group text-left"
           >
-             <div className="absolute top-0 right-0 p-6 text-gray-100 transform group-hover:scale-110 transition-transform duration-500">
-              <History size={90} />
+             <div className="absolute top-0 right-0 p-3 sm:p-6 text-gray-100 transform group-hover:scale-110 transition-transform duration-500">
+              <History className="w-16 h-16 md:w-24 md:h-24 opacity-50 md:opacity-100" />
             </div>
             <div className="relative z-10">
-              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4">
-                <History size={28} className="text-purple-600" />
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4">
+                <History className="w-5 h-5 md:w-7 md:h-7 text-purple-600" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Lịch Sử Làm Bài</h3>
-              <p className="text-gray-600 text-sm mb-4 max-w-md line-clamp-2">
+              <h3 className="text-base md:text-2xl font-bold text-gray-900 mb-1 md:mb-2">Lịch Sử Làm Bài</h3>
+              <p className="text-gray-600 text-[10px] md:text-sm mb-2 md:mb-4 max-w-md line-clamp-2">
                 {isAuthenticated 
                   ? "Xem lại kết quả bài thi để theo dõi sự tiến bộ." 
                   : "Đăng nhập để lưu kết quả thi của bạn."}
               </p>
-              <div className="inline-flex items-center gap-2 bg-gray-100 group-hover:bg-purple-50 text-gray-700 group-hover:text-purple-700 px-4 py-2 rounded-xl transition-colors text-sm font-semibold">
+              <div className="inline-flex items-center gap-2 bg-gray-100 group-hover:bg-purple-50 text-gray-700 group-hover:text-purple-700 px-2 py-1.5 md:px-4 md:py-2 rounded-lg md:rounded-xl transition-colors text-[10px] md:text-sm font-semibold">
                 {isAuthenticated ? "Xem lịch sử" : "Đăng nhập ngay"} <ArrowLeft className="w-4 h-4 rotate-180" />
               </div>
             </div>
