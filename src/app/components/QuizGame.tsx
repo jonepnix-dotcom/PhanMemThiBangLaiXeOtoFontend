@@ -514,6 +514,13 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
         <div className="flex-1 overflow-y-auto p-4 md:p-10 lg:p-12 pb-32 md:pb-32 hide-scrollbar md:scrollbar-default">
           
           <div className="max-w-5xl mx-auto flex flex-col mb-20 md:mb-0 min-h-full">
+            {/* Exam Title (if any) */}
+            {examTitle && (
+              <h2 className="text-xl md:text-3xl font-bold text-gray-800 mb-6 pb-4 border-b border-gray-200">
+                {examTitle}
+              </h2>
+            )}
+
             {/* Header info for question */}
             <div className="mb-4 md:mb-6 flex items-center justify-between">
               <span className="inline-flex py-1 px-3 md:py-1.5 md:px-4 bg-blue-50 text-blue-700 rounded-lg text-sm md:text-base font-bold border border-blue-200 shadow-sm">

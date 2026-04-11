@@ -77,3 +77,6 @@
 - **Tài liệu học tập (DocumentsPage):** 
   - Fix lỗi tràn layout trên layout điện thoại (Mobile Responsive) bằng cách cấu hình tự động bẻ chữ (`break-words`), co cụm tiêu đề (`line-clamp-2`).
   - Lược bỏ nội dung hiển thị đường dẫn thô (`/docs/...`) rườm rà dưới tên tài liệu giúp giao diện thoáng và sạch hơn.
+- **Bảo mật & Điều hướng (App.tsx Routing):** 
+  - Thiết lập Router Guard bảo vệ trang Admin (`/admin`). Kiểm tra chặt chẽ token và quyền hạn (`role === 'ADMIN'`) từ local storage.
+  - Tự động điều hướng (Force Redirect) về `/home` ngay lập tức nếu người dùng không phải là Admin hoặc chưa đăng nhập mà cố tình truy cập vào đường dẫn trang quản trị.

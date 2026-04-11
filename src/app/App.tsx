@@ -191,25 +191,48 @@ const App = () => {
 
     const fetchAll = async () => {
       try {
-        console.log('Fetching questions from API:', url + 'api/CauHoi');
-        // Fetch using the new API format
-        const res = await fetch(url + 'api/CauHoi'); // Assuming API is running on this backend URL for now
-        let dataQ: any[] = [];
+        console.log('Fetching questions from API by chapters...');
+        
+        const chapterPromises = [1,2,3,4,5,6,7].map(async (chuong) => {
+          try {
+            const res = await fetch(`${url}api/CauHoi?Chuong=${chuong}&pageSize=1000`);
+            if (!res.ok) return [];
+            
+            const rawData = await res.json();
+            let questions = Array.isArray(rawData) ? rawData : (rawData.questions || rawData.data || rawData.items || []);
+            
+            // Lặp các trang tiếp theo nếu size không đủ lấy hết
+            if (!Array.isArray(rawData) && rawData.totalPages && rawData.totalPages > 1) {
+              const additionalPromises = [];
+              for (let i = 2; i <= rawData.totalPages; i++) {
+                additionalPromises.push(
+                  fetch(`${url}api/CauHoi?Chuong=${chuong}&pageSize=1000&page=${i}`).then(r => r.json())
+                );
+              }
+              const additionalData = await Promise.all(additionalPromises);
+              additionalData.forEach((nextData: any) => {
+                const nextQ = Array.isArray(nextData) ? nextData : (nextData.questions || nextData.data || nextData.items || []);
+                questions = [...questions, ...nextQ];
+              });
+            }
+            
+            // Ghi chú chapter này từ API query thay vì dựa vào q.categories để đảm bảo phân loại 100% chuẩn xác
+            return questions.map((q: any) => ({ ...q, _injectedChapterId: chuong }));
+          } catch (err) {
+            console.error(`Failed to fetch chapter ${chuong}`, err);
+            return [];
+          }
+        });
 
-        if (res && res.ok) {
-          const rawData = await res.json();
-          console.log('API Raw Data:', rawData);
-          // Extract the array from the paginated response object (rawData.questions)
-          dataQ = Array.isArray(rawData) ? rawData : (rawData.questions || rawData.data || rawData.items || []);
-        } else {
-          console.error('API Error Response:', res.status, res.statusText);
-        }
+        // Parse song song
+        const chaptersData = await Promise.all(chapterPromises);
+        const dataQ = chaptersData.flat();
 
         if (!Array.isArray(dataQ) || dataQ.length === 0) {
           console.warn('No questions found or data is not an array.');
           return;
         }
-
+  
         console.log('Mapping', dataQ.length, 'questions...');
         const mapped: Question[] = dataQ.map((q: any) => {
           const options = Array.isArray(q.answers) ? q.answers.map((a: any) => a?.answerContent ?? String(a)) : [];
@@ -218,18 +241,13 @@ const App = () => {
             const idx = q.answers.findIndex((a: any) => a && a.isCorrect === true);
             if (idx !== -1) correctIndex = idx;
           }
-
-          let chapterId = 1;
-          if (Array.isArray(q.categories) && q.categories.length > 0) {
-            chapterId = Number(q.categories[0]);
-          }
-
+  
           return {
             id: `api-${String(q.id)}`,
             content: q.questionContent ?? '',
             options,
             correctAnswer: Math.max(0, Math.min(correctIndex, options.length - 1)),
-            chapterId,
+            chapterId: q._injectedChapterId,
             isParalysis: !!q.isCritical,
             imageUrl: q.imageUrl ?? '',
             explanation: q.explanation ?? '',

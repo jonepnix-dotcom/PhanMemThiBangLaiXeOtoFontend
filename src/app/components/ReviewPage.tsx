@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Wrench, AlertTriangle, Map as MapIcon, Zap, Gavel, ArrowLeft, AlertCircle, CheckCircle, XCircle, Truck } from 'lucide-react';
+import { Shield, Wrench, AlertTriangle, Map as MapIcon, Zap, Gavel, ArrowLeft, AlertCircle, CheckCircle, XCircle, Truck, Loader2 } from 'lucide-react';
 import { Question } from '@/app/types';
 import { QuizGame } from '@/app/components/QuizGame';
+import { url } from '../../env';
 
 // Dữ liệu cho các chương ôn tập
 const REVIEW_CHAPTERS = [
@@ -60,6 +61,9 @@ interface ReviewPageProps {
   questions: Question[];
 }
 
+// Cache để lưu các câu hỏi đã lấy theo chương hoặc loại, tránh gọi lại API nhiều lần
+const questionCache: Record<string, Question[]> = {};
+
 export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
   // Read API-provided chapter question counts once per render (from localStorage 'chapters')
   const apiCounts = React.useMemo(() => {
@@ -106,54 +110,22 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
     }
   }, [wrongQuestionIds]);
 
-  // Filter questions based on selection
-  // Special rule: when user selects Chapter 1, prefer to use the API-provided chapter (API id 0)
-  // stored in localStorage `chapters` if available, and show questions whose numeric API ids
-  // are listed in that chapter's questionIds. Otherwise fall back to filtering by question.chapterId.
+  // Lọc trực tiếp từ kho dữ liệu đã được App.tsx lấy sẵn (chứa toàn bộ 600 câu ngay khi vào web)
   const filteredQuestions = React.useMemo(() => {
     if (showParalysisOnly) {
       return questions.filter(q => q.isParalysis);
     }
 
     if (selectedChapter) {
-      // If selected is chapter 1, try to consult stored API chapters for questionIds
-      if (selectedChapter.id === 1) {
-        try {
-          if (typeof window !== 'undefined') {
-            const raw = window.localStorage.getItem('chapters');
-            if (raw) {
-              const parsed = JSON.parse(raw) as any[];
-              if (Array.isArray(parsed) && parsed.length > 0) {
-                // In our app we stored chapters as 1-based ids, matching UI.
-                const apiChap = parsed.find(c => Number(c.id) === 1 && Array.isArray(c.questionIds));
-                if (apiChap && Array.isArray(apiChap.questionIds) && apiChap.questionIds.length > 0) {
-                  const ids = new Set(apiChap.questionIds.map((n: any) => Number(n)));
-                  return questions.filter(q => {
-                    // Questions imported from API are stored with id like `api-<num>`; try to parse numeric id
-                    if (typeof q.id === 'string' && q.id.startsWith('api-')) {
-                      const n = Number(q.id.replace(/^api-/, ''));
-                      return ids.has(n);
-                    }
-                    return false;
-                  });
-                }
-              }
-            }
-          }
-        } catch (err) {
-          // ignore and fall back
-        }
-      }
-
-      // Default fallback: filter by assigned chapterId on each question
+      // Mặc định: lọc theo ID chương
       return questions.filter(q => q.chapterId === selectedChapter.id);
     }
     return [];
   }, [questions, selectedChapter, showParalysisOnly]);
 
-  // If a chapter is selected or paralysis-only mode, launch the ReviewGame (exam-like UI)
+  // Launch the ReviewGame
   if (selectedChapter || showParalysisOnly) {
-    const title = showParalysisOnly ? 'Các câu điểm liệt' : selectedChapter?.title || 'Ôn tập';
+    const title = showParalysisOnly ? 'Các câu điểm liệt' : (selectedChapter ? `${selectedChapter.title}: ${selectedChapter.topic}` : 'Ôn tập');
     return (
       <QuizGame
         examTitle={title}
