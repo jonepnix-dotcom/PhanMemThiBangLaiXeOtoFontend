@@ -41,6 +41,21 @@ export const AdminPage: React.FC<AdminPageProps> = ({ questions, setQuestions, c
   const [isLicenseModalOpen, setIsLicenseModalOpen] = useState(false);
   const [selectedLicenseDetails, setSelectedLicenseDetails] = useState<any>(null);
 
+  // Modal for Add New License
+  const [isAddLicenseModalOpen, setIsAddLicenseModalOpen] = useState(false);
+  const [newLicenseForm, setNewLicenseForm] = useState<{name: string, code: string, description: string, questionCount: number, duration: number, passScore: number, licenceRule: {categoryId: number, questionCount: number}[]}>({
+    name: '', code: '', description: '', questionCount: 31, duration: 20, passScore: 27,
+    licenceRule: [
+      { categoryId: 1, questionCount: 18 },
+      { categoryId: 2, questionCount: 1 },
+      { categoryId: 3, questionCount: 1 },
+      { categoryId: 4, questionCount: 1 },
+      { categoryId: 5, questionCount: 9 },
+      { categoryId: 6, questionCount: 9 },
+      { categoryId: 7, questionCount: 0 }
+    ]
+  });
+
   useEffect(() => {
     if (adminTab === 'settings') {
       const fetchLicenses = async () => {
@@ -587,11 +602,33 @@ export const AdminPage: React.FC<AdminPageProps> = ({ questions, setQuestions, c
 
             {adminTab === 'settings' && (
               <motion.div className="p-3 sm:p-6 sm:p-8 bg-white rounded-3xl shadow-sm border border-gray-100 mt-6 lg:mt-0 animate-fade-in-up">
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-4">
                   <div>
                     <h3 className="text-lg font-bold text-gray-900">Quản lý Văn Bằng</h3>
                     <p className="text-sm text-gray-500">Xem cấu trúc đề thi theo hạng bằng</p>
                   </div>
+                  <button
+                    onClick={() => {
+                      setNewLicenseForm({ 
+                        name: '', code: '', description: '', questionCount: 39, duration: 20, passScore: 27,
+                        licenceRule: [
+                          { categoryId: 1, questionCount: 18 },
+                          { categoryId: 2, questionCount: 1 },
+                          { categoryId: 3, questionCount: 1 },
+                          { categoryId: 4, questionCount: 1 },
+                          { categoryId: 5, questionCount: 9 },
+                          { categoryId: 6, questionCount: 9 },
+                          { categoryId: 7, questionCount: 0 }
+                        ]
+                      });
+                      setIsAddLicenseModalOpen(true);
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl flex items-center justify-center gap-2 transition-all font-medium text-sm"
+                    title="Thêm văn bằng"
+                  >
+                    <Plus size={16} />
+                    <span>Thêm văn bằng</span>
+                  </button>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1066,6 +1103,201 @@ export const AdminPage: React.FC<AdminPageProps> = ({ questions, setQuestions, c
                   className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-lg shadow-blue-600/20 transition-all active:scale-95 w-full"
                 >
                   Đóng cửa sổ
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Add New License Modal */}
+      <AnimatePresence>
+        {isAddLicenseModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 min-h-screen bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[9999]"
+            onClick={() => setIsAddLicenseModalOpen(false)}
+          >
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+              onClick={e => e.stopPropagation()}
+              className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl relative flex flex-col overflow-hidden max-h-[90vh]"
+            >
+              <div className="p-6 sm:p-8 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                    <Plus size={20}/>
+                  </div>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Thêm Văn Bằng Mới
+                  </h2>
+                </div>
+                <button onClick={() => setIsAddLicenseModalOpen(false)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">
+                  <X size={24}/>
+                </button>
+              </div>
+
+              <div className="p-6 sm:p-8 space-y-6 overflow-y-auto w-full custom-scrollbar">
+                
+                {/* General Info */}
+                <div>
+                  <h4 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <Settings size={18} className="text-blue-500" /> Thông tin chung
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Tên hiển thị (vd: Hạng C)</label>
+                      <input
+                        type="text"
+                        value={newLicenseForm.name}
+                        onChange={e => setNewLicenseForm({...newLicenseForm, name: e.target.value})}
+                        placeholder="Tên văn bằng..."
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white bg-gray-50"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Mã gửi API (vd: CTest)</label>
+                      <input
+                        type="text"
+                        value={newLicenseForm.code}
+                        onChange={e => setNewLicenseForm({...newLicenseForm, code: e.target.value})}
+                        placeholder="Mã..."
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white bg-gray-50"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2" title='duration'>T.Gian thi (Phút)</label>
+                      <input
+                        type="number"
+                        value={newLicenseForm.duration}
+                        onChange={e => setNewLicenseForm({...newLicenseForm, duration: Number(e.target.value)})}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white bg-gray-50"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2" title='passScore'>Điểm chuẩn để đỗ</label>
+                      <input
+                        type="number"
+                        value={newLicenseForm.passScore}
+                        onChange={e => setNewLicenseForm({...newLicenseForm, passScore: Number(e.target.value)})}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white bg-gray-50"
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Mô tả thêm (tuỳ chọn)</label>
+                    <textarea
+                      value={newLicenseForm.description}
+                      onChange={e => setNewLicenseForm({...newLicenseForm, description: e.target.value})}
+                      placeholder="Mô tả về hạng bằng này..."
+                      rows={2}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white bg-gray-50 resize-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="h-px bg-gray-100 w-full" />
+
+                {/* Structure / Rule */}
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                     <h4 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                       <Layers size={18} className="text-blue-500" /> Cấu trúc đề thi
+                     </h4>
+                     <div className="px-4 py-1.5 bg-blue-50 text-blue-700 font-bold rounded-lg border border-blue-100 text-sm">
+                       Tổng cầu: <span className="text-lg">{newLicenseForm.questionCount}</span>
+                     </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {newLicenseForm.licenceRule.map((rule, idx) => (
+                      <div key={rule.categoryId} className="flex items-center justify-between p-3 bg-gray-50 border border-gray-100 rounded-xl focus-within:border-blue-300 focus-within:ring-1 focus-within:ring-blue-100 transition-all hover:border-gray-200">
+                        <div className="flex-1 mr-3 truncate">
+                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-0.5">Chương {rule.categoryId}</span>
+                          <span className="text-sm font-medium text-gray-800 truncate block" title={chapters.find(c => c.id === rule.categoryId)?.title || `Chương ${rule.categoryId}`}>
+                            {chapters.find(c => c.id === rule.categoryId)?.title || `Tên chương ${rule.categoryId}`}
+                          </span>
+                        </div>
+                        <div className="w-16 shrink-0">
+                          <input
+                            type="number"
+                            min="0"
+                            value={rule.questionCount}
+                            onChange={(e) => {
+                              const newRules = [...newLicenseForm.licenceRule];
+                              newRules[idx].questionCount = Number(e.target.value) || 0;
+                              setNewLicenseForm({...newLicenseForm, licenceRule: newRules, questionCount: newRules.reduce((acc, r) => acc + r.questionCount, 0)});
+                            }}
+                            className="w-full px-2 py-2 text-center text-base font-bold border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white bg-white"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
+
+              <div className="p-5 sm:px-8 sm:py-5 border-t border-gray-100 bg-gray-50/50 flex justify-end gap-3 shrink-0">
+                <button 
+                  onClick={() => setIsAddLicenseModalOpen(false)}
+                  className="px-6 py-2.5 text-gray-600 font-medium hover:bg-gray-200 rounded-xl transition-colors"
+                >
+                  Hủy
+                </button>
+                <button 
+                  onClick={async () => {
+                     // Check valid input
+                     if (!newLicenseForm.name || !newLicenseForm.code) {
+                         toast.error('Vui lòng nhập tên và mã văn bằng');
+                         return;
+                     }
+                     
+                     // Make the POST payload matching requirement
+                     const payload = {
+                         licenceCode: newLicenseForm.code,
+                         questionCount: newLicenseForm.questionCount,
+                         duration: newLicenseForm.duration,
+                         passScore: newLicenseForm.passScore,
+                         licenceRule: newLicenseForm.licenceRule.filter(r => r.questionCount > 0)
+                     };
+
+                     try {
+                         const response = await fetch(`${url}api/licences/`, {
+                             method: 'POST',
+                             headers: {
+                                 'Content-Type': 'application/json'
+                             },
+                             body: JSON.stringify(payload)
+                         });
+
+                         if (response.ok) {
+                             const newId = Date.now().toString();
+                             const formStats = `${newLicenseForm.questionCount} câu / ${newLicenseForm.duration} phút (Mới)`;
+                             
+                             // Add to ui optimistically
+                             setAdminLicenses(prev => [...prev, {
+                                 id: newId,
+                                 code: newLicenseForm.code,
+                                 name: newLicenseForm.name,
+                                 description: newLicenseForm.description,
+                                 stats: formStats
+                             }]);
+                             
+                             toast.success(`Đã đăng ký văn bằng ${newLicenseForm.name} lên hệ thống thành công!`);
+                             setIsAddLicenseModalOpen(false);
+                         } else {
+                             const errData = await response.text();
+                             toast.error(`Máy chủ báo lỗi: ${errData}`);
+                         }
+                     } catch (err) {
+                         console.error(err);
+                         toast.error('Lỗi khi kết nối tới máy chủ (POST api/licences/)');
+                     }
+                  }}
+                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-sm transition-all"
+                >
+                  Xác nhận Thêm
                 </button>
               </div>
             </motion.div>
