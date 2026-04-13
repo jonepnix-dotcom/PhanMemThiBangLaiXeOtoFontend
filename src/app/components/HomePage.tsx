@@ -160,15 +160,15 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateToThi, onNavigateT
       </section>
 
   {/* Exam Structure Section */}
-  <section className="py-20 bg-blue-600/70 text-white">
-        <div className="container mx-auto px-8">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-  <span className="text-blue-200 font-bold uppercase tracking-wider text-sm">Quy chuẩn 600 câu</span>
-  <h2 className="text-3xl md:text-4xl font-bold text-white mt-2">Thông Tin Kỳ Thi</h2>
-  <p className="text-white/90 mt-4">Cấu trúc đề thi và điều kiện đậu cho từng hạng bằng.</p>
+  <section className="py-12 md:py-20 bg-blue-600/70 text-white">
+        <div className="container mx-auto px-4 md:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-10 md:mb-16">
+  <span className="text-blue-200 font-bold uppercase tracking-wider text-xs md:text-sm">Quy chuẩn 600 câu</span>
+  <h2 className="text-2xl md:text-4xl font-bold text-white mt-2">Thông Tin Kỳ Thi</h2>
+  <p className="text-white/90 mt-2 md:mt-4 text-sm md:text-base">Cấu trúc đề thi và điều kiện đậu cho từng hạng bằng.</p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:p-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
             <ExamCard 
               title="Hạng B1" 
               questions="30 câu" 
@@ -245,8 +245,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateToThi, onNavigateT
               </div>
             </div>
             
-            <div className="lg:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-3 sm:p-6">
-               <div className="relative h-[400px] rounded-2xl overflow-hidden shadow-lg group">
+            <div className="lg:w-2/3 grid grid-cols-2 gap-3 sm:p-6">
+               <div className="relative h-[200px] sm:h-[300px] md:h-[400px] rounded-xl sm:rounded-2xl overflow-hidden shadow-lg group">
                   <motion.img
                     src="https://images.unsplash.com/photo-1549916028-5fe07973a5c5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0cmFmZmljJTIwc2lnbnMlMjByb2FkJTIwc2FmZXR5fGVufDF8fHx8MTc3MDE2MzU1M3ww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
                     alt="Traffic Signs"
@@ -256,12 +256,12 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateToThi, onNavigateT
                     whileHover={{ scale: 1.06, rotate: 1 }}
                     transition={{ duration: 0.6 }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8 pointer-events-none">
-                    <h3 className="text-white font-bold text-2xl mb-2">Hệ thống biển báo</h3>
-                    <p className="text-gray-300">Nắm vững ý nghĩa của từng loại biển báo cấm, nguy hiểm, hiệu lệnh...</p>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-3 sm:p-5 md:p-8 pointer-events-none">
+                    <h3 className="text-white font-bold text-[13px] sm:text-xl md:text-2xl mb-1 sm:mb-2 leading-tight">Hệ thống biển báo</h3>
+                    <p className="text-gray-300 text-[10px] sm:text-sm md:text-base hidden sm:block">Nắm vững ý nghĩa của từng loại biển báo cấm, nguy hiểm, hiệu lệnh...</p>
                   </div>
                </div>
-               <div className="relative h-[400px] rounded-2xl overflow-hidden shadow-lg group">
+               <div className="relative h-[200px] sm:h-[300px] md:h-[400px] rounded-xl sm:rounded-2xl overflow-hidden shadow-lg group">
                   <motion.img
                     src="https://images.unsplash.com/photo-1742997734865-71d10c491be5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjYXIlMjBkcml2aW5nJTIwZGFzaGJvYXJkJTIwc2ltdWxhdG9yfGVufDF8fHx8MTc3MDE2MzU1OXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
                     alt="Driving Simulation"
@@ -271,9 +271,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateToThi, onNavigateT
                     whileHover={{ scale: 1.06, rotate: -1 }}
                     transition={{ duration: 0.6 }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8 pointer-events-none">
-                    <h3 className="text-white font-bold text-2xl mb-2">600 Câu hỏi lý thuyết</h3>
-                    <p className="text-gray-300">Hệ thống câu hỏi trắc nghiệm đầy đủ, cập nhật mới nhất theo quy định của Bộ GTVT.</p>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-3 sm:p-5 md:p-8 pointer-events-none">
+                    <h3 className="text-white font-bold text-[13px] sm:text-xl md:text-2xl mb-1 sm:mb-2 leading-tight">600 Câu lý thuyết</h3>
+                    <p className="text-gray-300 text-[10px] sm:text-sm md:text-base hidden sm:block">Hệ thống câu hỏi trắc nghiệm đầy đủ, cập nhật mới nhất theo quy định.</p>
                   </div>
                </div>
             </div>
@@ -337,10 +337,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateToThi, onNavigateT
       </section>
 
   {/* Stats & Results Preview */}
-  <section className="py-24 bg-white">
-      <div className="container mx-auto px-8 text-center">
-        <h2 className="text-3xl font-bold text-gray-800 mb-12">Kết Quả & Phân Tích Chi Tiết</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+  <section className="py-12 md:py-24 bg-white">
+      <div className="container mx-auto px-4 md:px-8 text-center">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-8 md:mb-12">Kết Quả & Phân Tích Chi Tiết</h2>
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-8">
           <StatFeature title="Kết quả tức thì" desc="ĐẠT hoặc KHÔNG ĐẠT ngay sau khi nộp bài." icon={<Zap size={24} />} />
           <StatFeature title="Điểm số chi tiết" desc="Ví dụ: 34/35. Hiển thị chính xác số câu đúng." icon={<Trophy size={24} />} />
           <StatFeature title="Phân tích lỗi" desc="Xem lại câu sai kèm giải thích đáp án đúng." icon={<AlertTriangle size={24} />} />
@@ -386,23 +386,23 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateToThi, onNavigateT
 };
 
 const ExamCard = ({ title, questions, time, passScore, icon, color }: { title: string, questions: string, time: string, passScore: string, icon: React.ReactNode, color: string }) => (
-  <div className="bg-white p-3 sm:p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-    <div className={`w-12 h-12 ${color} rounded-lg flex items-center justify-center text-white mb-4 shadow-lg shadow-${color}/30`}>
-      {icon}
+  <div className="bg-white p-3 sm:p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow flex flex-col h-full">
+    <div className={`w-10 h-10 sm:w-12 sm:h-12 ${color} rounded-lg flex items-center justify-center text-white mb-3 sm:mb-4 shadow-lg shadow-${color}/30 shrink-0`}>
+      <div className="scale-75 sm:scale-100 flex items-center justify-center">{icon}</div>
     </div>
-  <h3 className="font-bold text-xl text-gray-800 mb-2">{title}</h3>
-  <ul className="space-y-2 text-sm text-gray-600">
-      <li className="flex justify-between">
+  <h3 className="font-bold text-base sm:text-xl text-gray-800 mb-2">{title}</h3>
+  <ul className="space-y-1 sm:space-y-2 text-[11px] sm:text-sm text-gray-600 mt-auto">
+      <li className="flex justify-between items-center">
         <span>Số câu:</span>
         <span className="font-medium text-gray-900">{questions}</span>
       </li>
-      <li className="flex justify-between">
+      <li className="flex justify-between items-center">
         <span>Thời gian:</span>
         <span className="font-medium text-gray-900">{time}</span>
       </li>
-      <li className="flex justify-between border-t border-gray-100 pt-2 mt-2">
+      <li className="flex justify-between items-center border-t border-gray-100 pt-2 mt-2">
         <span className="text-green-600 font-medium">Đạt:</span>
-        <span className="font-bold text-green-700">{passScore}</span>
+        <span className="font-bold text-green-700 text-xs sm:text-base">{passScore}</span>
       </li>
     </ul>
   </div>
@@ -419,10 +419,12 @@ const StepCard = ({ step, title, description }: { step: string, title: string, d
 );
 
 const StatFeature = ({ title, desc, icon }: { title: string, desc: string, icon: React.ReactNode }) => (
-  <div className="bg-gray-50 p-8 rounded-xl border border-gray-100 flex flex-col items-center justify-center space-y-4 min-h-[160px]">
-     <div className="text-blue-600 mb-2 bg-blue-100 p-3 rounded-full">{icon}</div>
-     <h3 className="font-bold text-gray-800 mb-1">{title}</h3>
-  <p className="text-sm text-gray-600 text-center max-w-[220px]">{desc}</p>
+  <div className="bg-gray-50 p-4 sm:p-6 md:p-8 rounded-xl border border-gray-100 flex flex-col items-center justify-center space-y-2 md:space-y-4 min-h-[140px] md:min-h-[160px]">
+     <div className="text-blue-600 mb-1 md:mb-2 bg-blue-100 p-2 sm:p-3 rounded-full flex items-center justify-center scale-75 sm:scale-100">
+       {icon}
+     </div>
+     <h3 className="font-bold text-sm sm:text-base md:text-lg text-gray-800 mb-1">{title}</h3>
+  <p className="text-[11px] sm:text-[13px] md:text-sm text-gray-600 text-center max-w-[220px]">{desc}</p>
   </div>
 );
 

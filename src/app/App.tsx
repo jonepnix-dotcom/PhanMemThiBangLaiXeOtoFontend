@@ -584,12 +584,14 @@ const App = () => {
           className="flex items-center gap-2 md:gap-4 cursor-pointer hover:opacity-80 transition-opacity"
           onClick={() => handlePageChange('HOME')}
         >
-          <div className="h-10 w-10 md:h-12 md:w-12 rounded-full shadow-md border-2 border-white overflow-hidden flex items-center justify-center bg-white shrink-0">
+          <div className="relative h-16 w-16 md:h-20 md:w-20 rounded-2xl shadow-md overflow-hidden flex items-center justify-center shrink-0 bg-white">
             <img
               src={logoImage}
               alt="Nhóm 3 - Công nghệ .NET9"
-              className="h-full w-full object-cover"
+              className="h-full w-full object-cover relative z-0"
             />
+            {/* Khung viền đè trên ảnh */}
+            <div className="absolute inset-0 rounded-2xl border-[3px] border-white/80 z-10 pointer-events-none"></div>
           </div>
           <div className="flex flex-col justify-center">
             <span className="font-extrabold text-lg md:text-2xl tracking-tight bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent sm:block uppercase">

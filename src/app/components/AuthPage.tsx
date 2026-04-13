@@ -135,8 +135,9 @@ export const AuthPage = ({ onLogin, onNavigateToPrivacy, onBack }: AuthPageProps
 
         {/* Brand */}
         <div className="relative z-10 flex items-center gap-4 animate-fade-in">
-          <div className="h-12 w-12 rounded-full shadow-lg border-2 border-white/20 overflow-hidden flex items-center justify-center bg-white">
-            <img src={logoImage} alt="Nhóm 3 - Công nghệ .NET9" className="h-full w-full object-cover" />
+          <div className="relative h-20 w-20 md:h-24 md:w-24 rounded-2xl shadow-lg overflow-hidden flex items-center justify-center bg-white">
+            <img src={logoImage} alt="Nhóm 3 - Công nghệ .NET9" className="h-full w-full object-cover relative z-0" />
+            <div className="absolute inset-0 rounded-2xl border-[3px] border-white/30 z-10 pointer-events-none"></div>
           </div>
           <div className="flex flex-col">
             <span className="font-extrabold text-2xl tracking-tighter text-white uppercase">
@@ -188,12 +189,13 @@ export const AuthPage = ({ onLogin, onNavigateToPrivacy, onBack }: AuthPageProps
           <div className="w-full max-w-md animate-fade-in">
             {/* Mobile Logo & Title */}
             <div className="text-center mb-8 lg:mb-10">
-              <div className="h-16 w-16 mx-auto mb-2 rounded-full shadow-md lg:hidden overflow-hidden flex items-center justify-center bg-white">
+              <div className="relative h-24 w-24 mx-auto mb-2 lg:hidden rounded-2xl shadow-md overflow-hidden flex items-center justify-center bg-white">
                 <img 
                   src={logoImage} 
                   alt="Nhóm 3 - Công nghệ .NET9" 
-                  className="h-full w-full object-cover" 
+                  className="h-full w-full object-cover relative z-0" 
                 />
+                <div className="absolute inset-0 rounded-2xl border-[3px] border-gray-100 z-10 pointer-events-none"></div>
               </div>
               <div className="flex flex-col items-center justify-center mb-6 lg:hidden">
                 <span className="font-extrabold text-2xl tracking-tight bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent">

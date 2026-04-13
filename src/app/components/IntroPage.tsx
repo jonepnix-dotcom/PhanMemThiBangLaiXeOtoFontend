@@ -1,4 +1,5 @@
 import React from 'react';
+import { Carousel, CarouselContent, CarouselItem } from "./ui/carousel";
 
 type IntroPageProps = {
   onNavigateToThi?: () => void;
@@ -35,16 +36,24 @@ const TEAM_MEMBERS = [
 ];
 
 const IntroPage: React.FC<IntroPageProps> = ({ onNavigateToThi, onNavigateToDocs }) => {
-  const [currentSlide, setCurrentSlide] = React.useState(0);
-  const itemsPerSlide = 3;
-  const totalSlides = Math.ceil(TEAM_MEMBERS.length / itemsPerSlide);
+  const [goalsApi, setGoalsApi] = React.useState<any>();
+  const [teamApi, setTeamApi] = React.useState<any>();
 
   React.useEffect(() => {
+    if (!goalsApi) return;
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % totalSlides);
-    }, 4000);
+      goalsApi.scrollNext();
+    }, 3000);
     return () => clearInterval(timer);
-  }, [totalSlides]);
+  }, [goalsApi]);
+
+  React.useEffect(() => {
+    if (!teamApi) return;
+    const timer = setInterval(() => {
+      teamApi.scrollNext();
+    }, 3500);
+    return () => clearInterval(timer);
+  }, [teamApi]);
 
   return (
     <div className="min-h-screen bg-gray-50/30 font-sans">
@@ -71,12 +80,29 @@ const IntroPage: React.FC<IntroPageProps> = ({ onNavigateToThi, onNavigateToDocs
             <h2 className="text-4xl font-extrabold mt-2 text-gray-900">Mục tiêu của chúng tôi</h2>
             <div className="w-24 h-1.5 bg-blue-500 rounded-full mx-auto mt-6"></div>
           </div>
-          <div className="grid grid-cols-2 gap-4 md:gap-8 lg:grid-cols-4">
-          <GoalCard icon={"📱"} title="Số hóa toàn diện" desc="Cập nhật 600 câu hỏi, biển báo và sa hình mới nhất theo chuẩn Bộ GTVT." />
-          <GoalCard icon={"⏱️"} title="Thi thử thực tế" desc="Thuật toán trộn đề ngẫu nhiên, áp lực thời gian như kỳ thi thật." />
-          <GoalCard icon={"🧠"} title="Học hiểu bản chất" desc="Giải thích chi tiết từng câu, loại bỏ tư duy học vẹt." />
-          <GoalCard icon={"📈"} title="Tối ưu lộ trình" desc="Tự động lọc câu hỏi hay sai để người dùng tập trung ôn luyện." />
-        </div>
+          <Carousel
+            setApi={setGoalsApi}
+            opts={{
+              align: "start",
+              loop: true,
+            }}
+            className="w-full"
+          >
+            <CarouselContent className="-ml-4 sm:-ml-8">
+              <CarouselItem className="pl-4 sm:pl-8 basis-[85%] sm:basis-1/2 lg:basis-1/4 pt-8 pb-8">
+                <GoalCard icon={"📱"} title="Số hóa toàn diện" desc="Cập nhật 600 câu hỏi, biển báo và sa hình mới nhất theo chuẩn Bộ GTVT." />
+              </CarouselItem>
+              <CarouselItem className="pl-4 sm:pl-8 basis-[85%] sm:basis-1/2 lg:basis-1/4 pt-8 pb-8">
+                <GoalCard icon={"⏱️"} title="Thi thử thực tế" desc="Thuật toán trộn đề ngẫu nhiên, áp lực thời gian như kỳ thi thật." />
+              </CarouselItem>
+              <CarouselItem className="pl-4 sm:pl-8 basis-[85%] sm:basis-1/2 lg:basis-1/4 pt-8 pb-8">
+                <GoalCard icon={"🧠"} title="Học hiểu bản chất" desc="Giải thích chi tiết từng câu, loại bỏ tư duy học vẹt." />
+              </CarouselItem>
+              <CarouselItem className="pl-4 sm:pl-8 basis-[85%] sm:basis-1/2 lg:basis-1/4 pt-8 pb-8">
+                <GoalCard icon={"📈"} title="Tối ưu lộ trình" desc="Tự động lọc câu hỏi hay sai để người dùng tập trung ôn luyện." />
+              </CarouselItem>
+            </CarouselContent>
+          </Carousel>
         </div>
       </section>
 
@@ -85,49 +111,29 @@ const IntroPage: React.FC<IntroPageProps> = ({ onNavigateToThi, onNavigateToDocs
         <div className="max-w-6xl mx-auto px-6 relative z-10 text-center text-white">
           <h3 className="text-xl font-bold text-white mb-3 text-center uppercase tracking-wider">Thành Viên thực hiện</h3>
           <p className="max-w-3xl mx-auto text-lg text-blue-100/90 mb-8">Xây dựng bởi sinh viên Khoa CNTT – DNTU. Chúng tôi thay thế sách vở truyền thống bằng trải nghiệm học tập số hóa, trực quan và đầy cảm hứng.</p>
-          <div className="relative overflow-hidden w-full max-w-5xl mx-auto py-8">
-            <div 
-              className="flex transition-transform duration-700 ease-in-out"
-              style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+          <div className="relative w-full max-w-5xl mx-auto py-8">
+            <Carousel
+              setApi={setTeamApi}
+              opts={{
+                align: "center",
+                loop: true,
+              }}
+              className="w-full"
             >
-              {Array.from({ length: totalSlides }, (_, i) => `slide-group-${i}`).map((groupId, slideIndex) => {
-                const membersInSlide = TEAM_MEMBERS.slice(slideIndex * itemsPerSlide, (slideIndex + 1) * itemsPerSlide);
-                let gridClass = 'grid-cols-2 md:grid-cols-3';
-                if (membersInSlide.length === 1) {
-                  gridClass = 'max-w-sm';
-                } else if (membersInSlide.length === 2) {
-                  gridClass = 'max-w-3xl grid-cols-2 md:grid-cols-2';
-                }
-                
-                return (
-                  <div key={groupId} className="w-full shrink-0 flex justify-center px-2 sm:px-4">
-                    <div className={`grid gap-3 sm:p-6 w-full ${gridClass}`}>
-                      {membersInSlide.map((member) => (
-                        <div key={member.role} className="bg-white rounded-2xl p-3 sm:p-6 text-center shadow-lg hover:-translate-y-2 transition-transform duration-300">
-                          <div className={`w-20 h-20 rounded-full bg-gradient-to-br ${member.color} mx-auto flex items-center justify-center text-white font-bold text-2xl shadow-md border-4 border-white -mt-12`}>
-                            {member.initials}
-                          </div>
-                          <div className="mt-4 text-gray-900 font-bold text-lg">{member.name}</div>
-                          <div className="text-gray-600 text-sm mt-1">{member.role}</div>
-                        </div>
-                      ))}
+              <CarouselContent className="-ml-4 sm:-ml-6 py-8">
+                {TEAM_MEMBERS.map((member) => (
+                  <CarouselItem key={member.role} className="pl-4 sm:pl-6 basis-[85%] sm:basis-1/2 md:basis-1/3">
+                    <div className="bg-white rounded-2xl p-6 h-full text-center shadow-lg hover:-translate-y-2 transition-transform duration-300 mx-2">
+                      <div className={`w-20 h-20 rounded-full bg-gradient-to-br ${member.color} mx-auto flex items-center justify-center text-white font-bold text-2xl shadow-md border-4 border-white -mt-12`}>
+                        {member.initials}
+                      </div>
+                      <div className="mt-4 text-gray-900 font-bold text-lg">{member.name}</div>
+                      <div className="text-gray-600 text-sm mt-1">{member.role}</div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-            
-            {/* Indicators */}
-            <div className="flex justify-center gap-2 mt-8">
-              {Array.from({ length: totalSlides }, (_, i) => `slide-dot-${i}`).map((id, idx) => (
-                <button 
-                  key={id}
-                  onClick={() => setCurrentSlide(idx)}
-                  className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${currentSlide === idx ? 'bg-white w-6' : 'bg-white/40 hover:bg-white/60'}`}
-                  aria-label={`Go to slide ${idx + 1}`}
-                />
-              ))}
-            </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+            </Carousel>
           </div>
         </div>
       </section>
@@ -173,7 +179,7 @@ const IntroPage: React.FC<IntroPageProps> = ({ onNavigateToThi, onNavigateToDocs
                     <span className="text-blue-600 font-bold text-lg">✔</span>
                   </div>
                   <div>
-                    <h4 className="font-bold text-gray-900 text-base sm:text-xl tracking-tight">Trải nghiệm Offline</h4>
+                    <h4 className="font-bold text-gray-900 text-base sm:text-xl tracking-tight">Trải nghiệm phần mềm di động</h4>
                     <p className="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2 leading-relaxed">Tính năng đồng bộ cục bộ, ôn tập mọi lúc mọi nơi không cần Wifi.</p>
                   </div>
                 </li>
