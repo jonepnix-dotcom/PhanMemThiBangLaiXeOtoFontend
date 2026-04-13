@@ -26,6 +26,79 @@ export const AdminPage: React.FC<AdminPageProps> = ({ questions, setQuestions, c
   const [serverImages, setServerImages] = useState<string[]>([]);
   const [isLoadingImages, setIsLoadingImages] = useState(false);
 
+  // Licenses State
+  interface AdminLicenseType {
+    id: string | number;
+    code: string;
+    name: string;
+    description: string;
+    stats: string;
+  }
+  const [adminLicenses, setAdminLicenses] = useState<AdminLicenseType[]>([]);
+  const [isLoadingLicenses, setIsLoadingLicenses] = useState(false);
+
+  // Modal for License details
+  const [isLicenseModalOpen, setIsLicenseModalOpen] = useState(false);
+  const [selectedLicenseDetails, setSelectedLicenseDetails] = useState<any>(null);
+
+  useEffect(() => {
+    if (adminTab === 'settings') {
+      const fetchLicenses = async () => {
+        setIsLoadingLicenses(true);
+        try {
+          const res = await fetch(url + 'api/BangLai');
+          if (res.ok) {
+            const data = await res.json();
+            const list = Array.isArray(data) ? data : (data.bangLais || data.hangBangs || data.data || data.items || []);
+            if (Array.isArray(list) && list.length > 0) {
+              const mappedLicenses: AdminLicenseType[] = list.map((item: any, index: number) => {
+                return {
+                  id: item.id || item.maBang || index,
+                  code: item.code || item.maBang || item.tenBang || `Hạng ${index}`,
+                  name: item.tenBang || item.name || `Hạng ${item.maBang || item.code || index}`,
+                  description: item.moTa || item.description || '',
+                  stats: `${item.soCauHoi || 30} câu / ${item.thoiGianThi || 20} phút`
+                };
+              });
+              setAdminLicenses(mappedLicenses);
+            } else {
+              setAdminLicenses([
+                { id: 'B1', code: 'B1', name: 'Hạng B1', description: '', stats: '30 câu / 20 phút' },
+                { id: 'B2', code: 'B2', name: 'Hạng B2', description: '', stats: '35 câu / 22 phút' },
+                { id: 'C', code: 'C', name: 'Hạng C', description: '', stats: '40 câu / 24 phút' },
+                { id: 'D', code: 'D', name: 'Hạng D', description: '', stats: '45 câu / 26 phút' },
+                { id: 'E', code: 'E', name: 'Hạng E', description: '', stats: '45 câu / 26 phút' },
+                { id: 'F', code: 'F', name: 'Hạng F', description: '', stats: '45 câu / 26 phút' }
+              ]);
+            }
+          } else {
+             setAdminLicenses([
+                { id: 'B1', code: 'B1', name: 'Hạng B1', description: '', stats: '30 câu / 20 phút' },
+                { id: 'B2', code: 'B2', name: 'Hạng B2', description: '', stats: '35 câu / 22 phút' },
+                { id: 'C', code: 'C', name: 'Hạng C', description: '', stats: '40 câu / 24 phút' },
+                { id: 'D', code: 'D', name: 'Hạng D', description: '', stats: '45 câu / 26 phút' },
+                { id: 'E', code: 'E', name: 'Hạng E', description: '', stats: '45 câu / 26 phút' },
+                { id: 'F', code: 'F', name: 'Hạng F', description: '', stats: '45 câu / 26 phút' }
+              ]);
+          }
+        } catch (e) {
+          console.error("Lỗi get BangLai:", e);
+          setAdminLicenses([
+                { id: 'B1', code: 'B1', name: 'Hạng B1', description: '', stats: '30 câu / 20 phút' },
+                { id: 'B2', code: 'B2', name: 'Hạng B2', description: '', stats: '35 câu / 22 phút' },
+                { id: 'C', code: 'C', name: 'Hạng C', description: '', stats: '40 câu / 24 phút' },
+                { id: 'D', code: 'D', name: 'Hạng D', description: '', stats: '45 câu / 26 phút' },
+                { id: 'E', code: 'E', name: 'Hạng E', description: '', stats: '45 câu / 26 phút' },
+                { id: 'F', code: 'F', name: 'Hạng F', description: '', stats: '45 câu / 26 phút' }
+              ]);
+        } finally {
+          setIsLoadingLicenses(false);
+        }
+      };
+      if (adminLicenses.length === 0) fetchLicenses();
+    }
+  }, [adminTab, adminLicenses.length]);
+
   // Pagination for questions
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -305,8 +378,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({ questions, setQuestions, c
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {[
             { id: 'questions', label: 'Ngân hàng câu hỏi', icon: BookOpen },
-            { id: 'exams', label: 'Quản lý đề thi', icon: FileEdit },
-            { id: 'settings', label: 'Cài đặt', icon: Settings },
+            { id: 'exams', label: 'Chương', icon: FileEdit },
+            { id: 'settings', label: 'Văn bằng', icon: FileEdit },
           ].map((item) => (
             <button
               key={item.id}
@@ -512,6 +585,69 @@ export const AdminPage: React.FC<AdminPageProps> = ({ questions, setQuestions, c
               </motion.section>
             )}
 
+            {adminTab === 'settings' && (
+              <motion.div className="p-3 sm:p-6 sm:p-8 bg-white rounded-3xl shadow-sm border border-gray-100 mt-6 lg:mt-0 animate-fade-in-up">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">Quản lý Văn Bằng</h3>
+                    <p className="text-sm text-gray-500">Xem cấu trúc đề thi theo hạng bằng</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {isLoadingLicenses ? (
+                    <div className="col-span-full flex justify-center py-4">
+                      <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+                      <span className="ml-2 text-gray-500">Đang tải danh sách văn bằng...</span>
+                    </div>
+                  ) : (
+                    adminLicenses.map(license => (
+                      <div key={license.id} className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex justify-between items-center hover:border-blue-300 transition-colors cursor-pointer"
+                           onClick={async () => {
+                             try {
+                               // Append "TEST" to the license code automatically when querying details API
+                               const testCode = license.code.endsWith('TEST') ? license.code : `${license.code}TEST`;
+                               const res = await fetch(`${url}api/CauHoi/CauTruc?BangLai=${testCode}`);
+                               if (res.ok) {
+                                 const data = await res.json();
+                                 const freshStats = `${data.questionCount || 0} câu / ${data.duration || 0} phút`;
+                                 
+                                 // Cập nhật lại thông tin trên thẻ sau khi fetch thành công
+                                 setAdminLicenses(prev => prev.map(l => 
+                                   l.id === license.id ? { ...l, stats: freshStats } : l
+                                 ));
+
+                                 setSelectedLicenseDetails({
+                                   ...data,
+                                   // Keep original generic name but update original stats
+                                   name: license.name,
+                                   description: license.description,
+                                   stats: freshStats
+                                 });
+                                 setIsLicenseModalOpen(true);
+                               } else {
+                                 alert('Không tìm thấy dữ liệu.');
+                               }
+                             } catch (e) {
+                               alert('Lỗi kết nối.');
+                             }
+                           }}>
+                        <div>
+                          <h4 className="font-bold text-gray-800 text-lg">Hạng bằng: {license.name} ({license.code})</h4>
+                          <p className="text-sm text-gray-500">{license.stats}</p>
+                          <p className="text-sm text-gray-500 text-xs mt-1">Bấm để tải chi tiết cấu trúc</p>
+                        </div>
+                        <div className="text-blue-600 bg-blue-100 p-2 rounded-lg">
+                          <Eye size={24} />
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </motion.div>
+            )}
+
+            
             {/* Review Chapters Management */}
             {adminTab === 'exams' && (
               <motion.div className="p-3 sm:p-6 sm:p-8 bg-white rounded-3xl shadow-sm border border-gray-100">
@@ -866,6 +1002,77 @@ export const AdminPage: React.FC<AdminPageProps> = ({ questions, setQuestions, c
           </motion.div>
         )}
       </AnimatePresence>
+      {/* License Details Modal */}
+      <AnimatePresence>
+        {isLicenseModalOpen && selectedLicenseDetails && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 min-h-screen bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[9999]"
+            onClick={() => setIsLicenseModalOpen(false)}
+          >
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+              onClick={e => e.stopPropagation()}
+              className="bg-white rounded-3xl p-6 sm:p-8 w-full max-w-md shadow-2xl relative"
+            >
+              <button onClick={() => setIsLicenseModalOpen(false)} className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors">
+                <X size={20}/>
+              </button>
+              
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-blue-100 text-blue-600 rounded-xl">
+                  <FileText size={24} />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-blue-500">
+                    Văn bằng: {selectedLicenseDetails.name || selectedLicenseDetails.licenceCode}
+                  </h2>
+                  {selectedLicenseDetails.licenceCode && (
+                    <p className="text-sm font-medium text-gray-500 mt-1">Mã bằng: {selectedLicenseDetails.licenceCode}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between">
+                  <span className="text-gray-600 font-medium">Thời gian thi sinh</span>
+                  <span className="font-bold text-gray-900 border border-gray-200 px-3 py-1 rounded-lg bg-white">{selectedLicenseDetails.duration} phút</span>
+                </div>
+                
+                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between">
+                  <span className="text-gray-600 font-medium">Số lượng câu hỏi chuẩn</span>
+                  <span className="font-bold text-gray-900 border border-gray-200 px-3 py-1 rounded-lg bg-white">{selectedLicenseDetails.questionCount} câu</span>
+                </div>
+
+                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between">
+                  <span className="text-gray-600 font-medium">Tổng câu hỏi trong ngân hàng</span>
+                  <span className="font-bold text-blue-600 border border-blue-200 px-3 py-1 rounded-lg bg-blue-50">
+                    {Array.isArray(selectedLicenseDetails.questions) ? selectedLicenseDetails.questions.length : 0} câu
+                  </span>
+                </div>
+
+                {selectedLicenseDetails.description && (
+                  <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100 mt-2">
+                    <p className="text-sm text-gray-700 leading-relaxed text-center italic">
+                      "{selectedLicenseDetails.description}"
+                    </p>
+                  </div>
+                )}
+              </div>
+              
+              <div className="mt-8 flex justify-center">
+                <button 
+                  onClick={() => setIsLicenseModalOpen(false)}
+                  className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-lg shadow-blue-600/20 transition-all active:scale-95 w-full"
+                >
+                  Đóng cửa sổ
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </>
   );
 };

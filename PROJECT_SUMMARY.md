@@ -84,3 +84,24 @@
 ### Cập nhật mới nhất
 - **Tối ưu hóa tải dữ liệu (App.tsx)**: Chuyển sang cơ chế tải toàn bộ 600 câu hỏi từ 7 API cùng lúc khi khởi động ứng dụng để tăng tốc độ trải nghiệm.
 - **Giao diện Ôn tập (QuizGame & ReviewPage)**: Bổ sung hiển thị chi tiết tên chương và chủ đề trực tiếp trên màn hình làm bài, giúp người dùng dễ dàng theo dõi thư mục đang học.
+
+**Phiên làm việc ngày 13/04/2026:**
+- **App.tsx & Quản lý trạng thái:**
+  - Tối ưu hóa chức năng `handleLogout`: Thực hiện dọn dẹp kết nối SignalR (`resetSignalRConnection()`) và dừng kết nối một cách an toàn trước khi xóa dữ liệu LocalStorage.
+  - Loại bỏ hoàn toàn khối logic đăng nhập riêng biệt cho Admin, cho phép trang `AdminPage` được truy cập trực tiếp thông qua trạng thái `currentPage = 'ADMIN'`.
+- **Hệ thống Xác thực (AuthPage.tsx):**
+  - Tích hợp API mới (`/auth/login` và `/auth/register`) thay cho bộ giả lập nội bộ.
+  - Bổ sung việc lưu trữ thông tin thực tế (`userId`) và role sau khi đăng nhập thành công.
+  - Loại bỏ nút đăng nhập bằng Google.
+- **Trang chủ (HomePage.tsx):**
+  - Thay đổi ảnh nền (Hero section) và nội dung văn bản (vd: "GROUP 3 .NET TECH Nền Tảng Ôn Thi GPLX") mang tính thương hiệu rõ ràng.
+  - Bố cục lại chi tiết cấu trúc đề thi các hạng bằng (B1, B2, C, D, E, F) và thông tin điều kiện chuẩn đậu mới.
+- **Trang giới thiệu (IntroPage.tsx):**
+  - Cập nhật số lượng, họ tên và MSSV chi tiết của tất cả các thành viên trong nhóm thiết kế (11 thành viên).
+  - Tinh giản hiệu ứng hiển thị, cập nhật văn bản mô tả dự án và kiến trúc công nghệ triển khai (ASP.NET Core Web API).
+- **Hệ thống Quản trị (AdminPage.tsx):**
+  - Đổi tên tab "Quản lý đề thi" thành "Chương".
+  - Chuyển đổi công năng tab "Cài đặt" (Settings) thành trang quản lý "Văn bằng". Đổi icon thành `Eye` giúp giao diện trực quan, nhằm mô tả chức năng xem chi tiết.
+  - Nâng cấp hệ thống hiển thị danh sách Văn Bằng: Tích hợp gọi API (`/api/BangLai`) để nạp hoàn toàn các hạng bằng một cách linh động. Khi thiết lập ban đầu hoặc lỗi, hệ thống tự động fallback về danh sách bằng lái chuẩn (B1, B2, C, D, E, F).
+  - Thay thế hộp thoại thông báo thô (`alert()`) bằng một **Modal UI hiện đại**, hiển thị chuyên nghiệp chi tiết của văn bằng khi được nhấn vào (như thời gian thi, số câu chuẩn, tổng lượng câu ngân hàng gọi từ API `/api/CauHoi/CauTruc?BangLai=...`).
+  - Cập nhật chức năng xem chi tiết Văn bằng: Tự động đính kèm hậu tố `TEST` vào mã bằng (ví dụ `C` thành `CTEST`, `D` thành `DTEST`) để nạp cấu trúcJSON từ Backend (API `/api/CauHoi/CauTruc?BangLai=...TEST`) và đồng bộ trực tiếp thông số (số câu/thời gian) lên thẻ hiển thị ở màn hình Admin.
