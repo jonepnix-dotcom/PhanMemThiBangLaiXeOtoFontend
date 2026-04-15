@@ -132,3 +132,7 @@
 - **Quản lý thiết lập văn bằng (Licence Setup):**
   - **Giới hạn số lượng câu hỏi:** Cập nhật logic trong `LicencePage.tsx` chặn người dùng cấu hình số lượng câu hỏi của các chương vượt quá `Tổng số câu` đã định của văn bằng. Nút "+ Thêm chương" sẽ tự động bị vô hiệu hóa khi tổng số câu phân bổ đạt mức tối đa.
   - **Câu hỏi điểm liệt:** Bổ sung xử lý hiển thị danh mục ảo "🚨 CÂU HỎI ĐIỂM LIỆT" (với `categoryId: 0`) vào đầu danh sách lựa chọn cấu trúc chương để Admin có thể cấu hình chính xác số lượng câu điểm liệt yêu cầu trong mỗi đề thi.
+- **Trang Ôn tập (`ReviewPage` & `QuizGame`):**
+  - **Nâng cấp giao diện Kết quả Ôn tập & Thi Sát Hạch:** Xóa bỏ thông báo "ĐẠT/KHÔNG ĐẠT" cứng nhắc đơn điệu cũ. Thay thế bằng giao diện thống kê thân thiện (Gradient sắc nét, Circular Progress Chart) với phần trăm hoàn thành, phân tách rõ các câu Đúng/Sai/Chưa làm.
+  - **Giao diện trang tổng kết (Result Page) liền mạch:** Chuyển đổi từ Box hiển thị nhỏ lồng cuộn nội bộ (Scroll bounding box) sang chế độ toàn trang. Loại bỏ giới hạn max-height, cho phép người dùng cuộn xem từng đáp án liền mạch và mượt mà hơn trên mọi dòng thiết bị, tránh tình trạng bị chẻ layout hay kẹt nút cuộn trên màn hình nhỏ.
+  - **Chi tiết đáp án trực quan:** Thiết kế lại dạng lưới (`grid-cols-2`) giúp người dùng dễ theo dõi các lựa chọn. Các đáp án được phối màu sinh động (`green-50`, `red-50`), có huy hiệu đánh dấu rõ nguyên nhân sai do câu điểm liệt và bộ khung chú thích giải thích gọn gàng bên dưới mỗi thẻ bài thi.

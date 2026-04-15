@@ -277,73 +277,207 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
   const isPassed = correctCount >= passCountGlobal && !(paralysisMandatoryGlobal && failedByCritical);
 
   if (showResult) {
+    const isReviewMode = !showTimer;
+    
     const outerClass = resultFullPage
-      ? 'w-full h-full mx-0 bg-gray-50 rounded-none shadow-none overflow-hidden animate-fade-in flex flex-col'
+      ? 'w-full h-full mx-0 bg-gray-50 flex flex-col overflow-y-auto animate-fade-in'
       : 'w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden animate-fade-in';
 
-    const bodyClass = resultFullPage ? 'p-8 flex-1 overflow-y-auto max-w-5xl mx-auto w-full' : 'p-8 max-h-[70vh] overflow-y-auto';
+    const bodyClass = resultFullPage ? 'p-4 md:p-8 max-w-5xl mx-auto w-full' : 'p-4 md:p-8 max-h-[70vh] overflow-y-auto';
+
+    const unansweredCount = totalQuestions - Object.keys(selectedAnswers).length;
+    const wrongCount = totalQuestions - correctCount - unansweredCount;
+    const scorePercentage = Math.round((correctCount / totalQuestions) * 100);
 
     return (
       <div className={outerClass}>
-        <div className={`p-10 text-center text-white relative overflow-hidden ${isPassed ? 'bg-green-600' : 'bg-red-500'}`}>
-          <div className="absolute inset-0 bg-black/10"></div>
-          <div className="relative z-10 flex flex-col items-center">
-            {isPassed ? <CheckCircle size={80} className="mx-auto mb-4 drop-shadow-md" /> : <XCircle size={80} className="mx-auto mb-4 drop-shadow-md" />}
-            <h2 className="text-4xl font-extrabold mb-2 tracking-tight drop-shadow-sm">{isPassed ? "ĐẠT KẾT QUẢ" : "KHÔNG ĐẠT"}</h2>
-            <p className="text-xl font-medium text-white/90">Bạn đã trả lời đúng {correctCount}/{totalQuestions} câu hỏi</p>
-            {!isPassed && failedByCritical && (
-              <p className="mt-3 inline-block bg-red-900/40 px-4 py-1.5 rounded-lg text-sm font-semibold border border-red-400/50">Bạn không đạt do trả lời sai câu điểm liệt (câu bắt buộc).</p>
-            )}
+        {isReviewMode ? (
+          <div className="p-8 md:p-12 text-center bg-gradient-to-br from-blue-600 to-indigo-700 text-white relative overflow-hidden">
+            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+            <div className="relative z-10 flex flex-col items-center">
+              <div className="relative mb-6">
+                <svg className="w-24 h-24 md:w-32 md:h-32 transform -rotate-90" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="40" fill="transparent" stroke="rgba(255,255,255,0.2)" strokeWidth="6" />
+                  <circle cx="50" cy="50" r="40" fill="transparent" stroke="white" strokeWidth="6" strokeDasharray="251.2" strokeDashoffset={251.2 - (251.2 * scorePercentage) / 100} className="transition-all duration-1000 ease-out" />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-3xl font-black">{scorePercentage}%</span>
+                </div>
+              </div>
+              <h2 className="text-3xl md:text-4xl font-extrabold mb-3 tracking-tight drop-shadow-sm">Hoàn Thành Ôn Tập</h2>
+              <p className="text-lg md:text-xl font-medium text-white/90 max-w-lg mb-6">
+                Tuyệt vời! Bạn đã trả lời đúng {correctCount} trên tổng số {totalQuestions} câu hỏi.
+              </p>
+              
+              <div className="flex flex-wrap justify-center gap-4 md:gap-8 bg-white/10 backdrop-blur-md px-6 py-4 rounded-xl border border-white/20">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-green-400"></div>
+                  <span className="font-semibold">{correctCount} Câu đúng</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                  <span className="font-semibold">{wrongCount} Câu sai</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+                  <span className="font-semibold">{unansweredCount} Chưa làm</span>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className={`p-6 md:p-8 text-center text-white relative overflow-hidden shrink-0 transition-colors duration-500 ${isPassed ? 'bg-gradient-to-br from-green-500 to-emerald-700' : 'bg-gradient-to-br from-red-500 to-rose-700'}`}>
+            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+            <div className="relative z-10 flex flex-col items-center">
+              <div className="relative mb-4">
+                <svg className="w-24 h-24 md:w-28 md:h-28 transform -rotate-90" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="40" fill="transparent" stroke="rgba(255,255,255,0.2)" strokeWidth="8" />
+                  <circle cx="50" cy="50" r="40" fill="transparent" stroke="white" strokeWidth="8" strokeDasharray="251.2" strokeDashoffset={251.2 - (251.2 * scorePercentage) / 100} className="transition-all duration-1000 ease-out" />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  {isPassed ? <CheckCircle size={36} className="text-white drop-shadow-md" /> : <XCircle size={36} className="text-white drop-shadow-md" />}
+                </div>
+              </div>
+              <h2 className="text-3xl md:text-4xl font-extrabold mb-2 tracking-tight drop-shadow-lg">{isPassed ? "ĐẠT YÊU CẦU" : "KHÔNG ĐẠT"}</h2>
+              <p className="text-base md:text-lg font-medium text-white/90 max-w-lg mb-3">
+                Bạn đã trả lời đúng <span className="font-bold text-white text-xl mx-1">{correctCount}</span> trên tổng số <span className="font-bold text-white text-xl mx-1">{totalQuestions}</span> câu hỏi.
+              </p>
+              
+              {!isPassed && failedByCritical && (
+                <div className="mt-1 mb-4 flex items-center gap-2 bg-red-900/60 px-4 py-2 rounded-xl text-sm md:text-base font-bold border border-red-400/50 shadow-lg backdrop-blur-sm animate-pulse w-max mx-auto">
+                  <AlertTriangle size={18} className="text-yellow-400" />
+                  <span>Cảnh báo: Bạn đã trả lời sai câu điểm liệt!</span>
+                </div>
+              )}
+              
+              <div className="flex flex-wrap justify-center gap-4 md:gap-6 bg-white/15 backdrop-blur-md px-5 py-2.5 rounded-xl border border-white/20 mt-1 shadow-inner">
+                <div className="flex items-center gap-2">
+                  <div className={`w-3 h-3 rounded-full ${isPassed ? 'bg-green-300' : 'bg-red-300'}`}></div>
+                  <span className="font-semibold text-sm">Mức đạt: {passCountGlobal}/{totalQuestions}</span>
+                </div>
+                <div className="hidden md:block w-px h-5 bg-white/30"></div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-white"></div>
+                  <span className="font-semibold text-sm">Điểm của bạn: {correctCount}/{totalQuestions}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         
         <div className={bodyClass}>
-          <h3 className="text-2xl font-bold mb-6 text-gray-800">Chi tiết bài làm</h3>
+          {isReviewMode ? (
+            <div className="flex items-center justify-between mb-6 border-b border-gray-100 pb-4">
+              <h3 className="text-2xl font-bold text-gray-800">Chi tiết đáp án</h3>
+            </div>
+          ) : (
+            <h3 className="text-2xl font-bold mb-6 text-gray-800">Chi tiết bài làm</h3>
+          )}
           <div className="space-y-6">
             {usedQuestions.map((q, index) => {
               const userAnswer = selectedAnswers[q.id];
               const isCorrect = userAnswer === q.correctAnswer;
               const isUnsure = !!unsureQuestions[q.id];
+              const isUnanswered = userAnswer === undefined;
 
-              const containerClass = `p-4 rounded-xl border-2 ${isUnsure ? 'border-yellow-400 bg-yellow-100' : (isCorrect ? 'border-green-100 bg-green-50' : 'border-red-100 bg-red-50')}`;
+              const containerClass = `p-5 rounded-2xl border-2 transition-all duration-300 shadow-sm ${
+                isUnanswered ? 'border-gray-200 bg-gray-50' : 
+                (isUnsure ? 'border-yellow-400 bg-yellow-50' : 
+                (isCorrect ? 'border-green-200 bg-green-50/50' : 'border-red-200 bg-red-50/50'))
+              }`;
 
               return (
                 <div key={q.id} className={containerClass}>
-                  <div className="flex gap-3">
-                    <span className="font-bold text-gray-500">Câu {index + 1}:</span>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-3">
-                        <p className="font-medium text-gray-900">{q.content}</p>
+                  <div className="flex gap-4">
+                    <div className="flex-shrink-0 flex flex-col items-center">
+                      <span className={`w-10 h-10 flex items-center justify-center rounded-full text-sm font-bold shadow-md bg-white border ${
+                        isUnanswered ? 'text-gray-500 border-gray-300' :
+                        (isCorrect ? 'text-green-600 border-green-300' : 'text-red-500 border-red-300')
+                      }`}>
+                        #{index + 1}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                        <p className="font-bold text-gray-800 text-lg leading-snug break-words">
+                          {q.content}
+                        </p>
                         {isUnsure && (
-                          <span className="text-xs font-semibold text-yellow-800 bg-yellow-100 px-2 py-0.5 rounded">Không chắc</span>
+                          <span className="text-xs font-bold text-yellow-800 bg-yellow-100 px-3 py-1 rounded-full shadow-sm">
+                            Đánh dấu chưa chắc chắn
+                          </span>
+                        )}
+                        {q.isParalysis && (
+                           <span className="text-xs font-bold text-red-700 bg-red-100 flex items-center gap-1 border border-red-200 px-3 py-1 rounded-full shadow-sm">
+                             <AlertTriangle size={14} /> 
+                             Câu điểm liệt
+                           </span>
+                        )}
+                        {isUnanswered && (
+                          <span className="text-xs font-bold text-gray-600 bg-gray-200 px-3 py-1 rounded-full shadow-sm">
+                            Chưa trả lời
+                          </span>
                         )}
                       </div>
-                      <div className="space-y-2">
+                      
+                      {q.imageUrl && (
+                        <div className="mb-4 text-center">
+                          <img src={q.imageUrl} alt="Hình ảnh câu hỏi" className="max-h-64 object-contain inline-block border border-gray-200 rounded-lg shadow-sm" />
+                        </div>
+                      )}
+
+                      <div className="grid gap-2 grid-cols-1 md:grid-cols-2">
                         {q.options.map((opt, i) => (
                           (() => {
                             const isOptCorrect = i === q.correctAnswer;
                             const isOptUser = i === userAnswer;
-                            const baseClass = 'p-2 rounded-lg text-sm flex items-center justify-between';
-                            const correctClass = 'bg-green-200 text-green-900 font-medium';
-                            const wrongClass = 'bg-red-200 text-red-900';
-                            const neutralClass = 'bg-transparent text-gray-700';
-                            const unsureHighlightCorrect = isUnsure && isOptCorrect ? 'ring-2 ring-green-300' : '';
-                            const unsureHighlightWrong = isUnsure && isOptUser && !isOptCorrect ? 'ring-2 ring-red-300' : '';
-                            const combined = [baseClass, isOptCorrect ? correctClass : '', (isOptUser && !isOptCorrect) ? wrongClass : '', (!isOptUser && !isOptCorrect) ? neutralClass : '', unsureHighlightCorrect, unsureHighlightWrong].filter(Boolean).join(' ');
+                            
+                            let baseClass = 'p-3 rounded-xl border flex items-center justify-between gap-3 min-h-[50px]';
+                            if (isOptCorrect && isOptUser) {
+                              baseClass += ' border-green-500 bg-green-100 text-green-900 font-bold shadow-md';
+                            } else if (isOptCorrect && !isOptUser) {
+                              baseClass += ' border-green-500 text-green-900 font-bold bg-green-50 shadow-sm';
+                            } else if (isOptUser && !isOptCorrect) {
+                              baseClass += ' border-red-400 bg-red-100 text-red-900 font-semibold opacity-75';
+                            } else {
+                              baseClass += ' border-gray-200 bg-white text-gray-700 hover:bg-gray-50';
+                            }
 
                             return (
-                              <div key={i} className={combined}>
-                                <span>{String.fromCharCode(65 + i)}. {opt}</span>
-                                {isOptCorrect && <CheckCircle size={16} className="text-green-700" />}
-                                {isOptUser && !isOptCorrect && <XCircle size={16} className="text-red-700" />}
+                              <div key={i} className={baseClass}>
+                                <div className="flex items-center gap-3">
+                                  <div className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold shrink-0 ${
+                                    isOptCorrect ? 'bg-green-600 text-white' :
+                                    isOptUser ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-600'
+                                  }`}>
+                                    {String.fromCharCode(65 + i)}
+                                  </div>
+                                  <span className="break-words text-sm md:text-base leading-snug">{opt}</span>
+                                </div>
+                                
+                                <div className="shrink-0 flex items-center">
+                                  {isOptCorrect && <CheckCircle size={20} className="text-green-600 drop-shadow-sm" />}
+                                  {isOptUser && !isOptCorrect && <XCircle size={20} className="text-red-500" />}
+                                </div>
                               </div>
                             );
                           })()
                         ))}
                       </div>
+                      
                       {q.explanation && (
-                        <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-[20px] text-amber-900 leading-relaxed">
-                          <span className="font-bold text-amber-950">Giải thích:</span> {q.explanation}
+                        <div className="mt-5 p-4 rounded-xl bg-orange-50 border border-orange-200 shadow-inner">
+                          <div className="flex items-start gap-3">
+                            <div className="p-2 bg-orange-100 rounded-full text-orange-600 shrink-0">
+                              <CheckCircle size={20} />
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-orange-900 mb-1 text-sm uppercase tracking-wider">Giải thích đáp án</h4>
+                              <p className="text-orange-950 font-medium text-[15px] leading-relaxed">
+                                {q.explanation}
+                              </p>
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -354,12 +488,12 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
           </div>
         </div>
 
-        <div className="p-3 sm:p-6 bg-gray-50 border-t border-gray-100 flex justify-center">
+        <div className={`p-6 bg-gray-50 border-t border-gray-100 flex justify-center ${resultFullPage ? '' : 'sticky bottom-0 z-10 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)]'}`}>
           <button 
             onClick={onExit}
-            className="flex items-center gap-2 px-8 py-3 bg-gray-800 text-white rounded-xl font-bold hover:bg-gray-900 transition-all"
+            className="flex items-center gap-3 px-10 py-4 bg-gray-900 text-white flex-shrink-0 rounded-2xl font-bold hover:bg-black transition-all hover:scale-105 shadow-xl hover:shadow-black/20"
           >
-            <RotateCcw size={20} /> Quay lại danh sách đề
+            <RotateCcw size={22} /> Quay lại màn hình chính
           </button>
         </div>
       </div>

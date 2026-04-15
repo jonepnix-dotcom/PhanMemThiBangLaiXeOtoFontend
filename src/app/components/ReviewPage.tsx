@@ -152,6 +152,7 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
         allowUnsure={false}
         submitButtonText="Hoàn thành"
         showImmediateExplanation={true}
+        resultFullPage={true}
       />
     );
   }
