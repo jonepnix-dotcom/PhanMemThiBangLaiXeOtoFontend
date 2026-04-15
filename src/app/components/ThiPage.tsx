@@ -56,29 +56,13 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
   const [examConfig, setExamConfig] = useState<{timeSeconds?: number; passCount?: number; paralysisMandatory?: boolean} | null>(null);
 
   // Dynamic license list
-  const [licenseTypes, setLicenseTypes] = useState<LicenseType[]>(() => {
-    try {
-      if (typeof window !== 'undefined') {
-        const cached = window.sessionStorage.getItem('licenseTypes');
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-        }
-      }
-    } catch {}
-    return [];
-  });
+  const [licenseTypes, setLicenseTypes] = useState<LicenseType[]>([]);
   const [isLoadingLicenses, setIsLoadingLicenses] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchLicenses = async () => {
       try {
-        if (licenseTypes.length === 0) {
-          setIsLoadingLicenses(true);
-        } else {
-          // already have cached data, don't block UI but fetch in background
-          setIsLoadingLicenses(false);
-        }
+        setIsLoadingLicenses(true);
         
         const res = await fetch(url + 'api/vanbang');
         if (res.ok) {
@@ -87,10 +71,8 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
           
           const list = Array.isArray(data) ? data : (data.data || data.items || []);
           if (Array.isArray(list) && list.length > 0) {
-            // Lọc các bản ghi dùng để test nội bộ (ví dụ: 'CTEST') ra khỏi danh sách hiển thị thẻ chọn
-            const displayList = list.filter((item: any) => !item.licenceCode.includes('TEST'));
-
-            const mappedLicenses: LicenseType[] = displayList.map((item, index) => {
+            // Hiển thị tất cả văn bằng (kể cả CTEST, BTEST...) theo đúng định dạng API trả về
+            const mappedLicenses: LicenseType[] = list.map((item: any, index: number) => {
               const style = DEFAULT_LICENSE_STYLES[index % DEFAULT_LICENSE_STYLES.length];
               return {
                 id: item.licenceId,
@@ -105,25 +87,19 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
               };
             });
             setLicenseTypes(mappedLicenses);
-            try { window.sessionStorage.setItem('licenseTypes', JSON.stringify(mappedLicenses)); } catch {}
             return;
           }
         }
         console.warn("Failed to fetch VanBang or empty.");
-        if (licenseTypes.length === 0) {
-          setLicenseTypes([]);
-        }
+        setLicenseTypes([]);
       } catch (err) {
         console.error("Error fetching licenses from API", err);
-        if (licenseTypes.length === 0) {
-          setLicenseTypes([]);
-        }
+        setLicenseTypes([]);
       } finally {
         setIsLoadingLicenses(false);
       }
     };
     fetchLicenses();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -150,8 +126,8 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
   // Helper: Create and start exam for a specific license
   const handleStartExamByLicense = async (license: LicenseType) => {
     try {
-      // Thêm đuôi TEST vào mã bằng theo cấu trúc backend mới (VD: C -> CTEST, B1 -> B1TEST)
-      const apiCode = license.code + 'TEST'; 
+      // Gọi trực tiếp api với đúng mã bằng không chèn thêm bất kì kí tự nào (ví dụ CTEST)
+      const apiCode = license.code; 
       const res = await fetch(url + 'api/CauHoi/CauTruc?BangLai=' + apiCode);
       
       if (res.ok) {
@@ -177,29 +153,35 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
           rawData.forEach((item: any) => {
             if (item && typeof item === 'object' && Array.isArray(item.questions)) dataQ.push(...item.questions);
             else if (item && typeof item === 'object' && Array.isArray(item.cauHois)) dataQ.push(...item.cauHois);
-            else dataQ.push(item);
+            else {
+              dataQ.push(item);
+            }
           });
         }
         
         if (dataQ.length > 0) {
           const mapped: Question[] = dataQ.map((q: any) => {
-            const options = Array.isArray(q.answers) ? q.answers.map((a: any) => a?.answerContent ?? String(a)) : [];
+            // Format answer objects
+            const rawAnswers = Array.isArray(q.answers) ? q.answers : [];
+            const options = rawAnswers.map((a: any) => a?.answerContent ?? String(a));
+            
+            // Determine correct index
             let correctIndex = 0;
-            if (Array.isArray(q.answers)) {
-              const idx = q.answers.findIndex((a: any) => a && a.isCorrect === true);
+            if (rawAnswers.length > 0) {
+              const idx = rawAnswers.findIndex((a: any) => a && a.isCorrect === true);
               if (idx !== -1) correctIndex = idx;
             }
 
             let chapterId = 1;
             if (Array.isArray(q.categories) && q.categories.length > 0) {
-              chapterId = Number(q.categories[0].id || q.categories[0]); // handles object or number
+              chapterId = Number(q.categories[0].id || q.categories[0]); 
             }
 
             return {
-              id: `api-${String(q.id)}`,
+              id: String(q.id),
               content: q.questionContent ?? '',
               options,
-              correctAnswer: Math.max(0, Math.min(correctIndex, options.length - 1)),
+              correctAnswer: correctIndex,
               chapterId,
               isParalysis: !!q.isCritical,
               imageUrl: q.imageUrl ?? '',
@@ -208,22 +190,35 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
           });
 
           // Determine time and passCount. Dùng dữ liệu từ API nếu có, không thì dùng fallback mặc định.
-          let timeSeconds = rawData.duration ? rawData.duration * 60 : 22 * 60;
-          let passCount = rawData.questionCount ? Math.floor(rawData.questionCount * 0.9) : 31;
+          const duration = rawData.duration || 20; 
+          const qCount = rawData.questionCount || mapped.length;
           
+          let timeSeconds = duration * 60;
+          let passCount = Math.floor(qCount * 0.9); // VD: Đậu >= 90%
+          
+          // Ghi đè cứng fallback nếu API không trả về
           if (!rawData.duration) {
             if (license.code === 'B1') { timeSeconds = 20 * 60; passCount = 27; }
             else if (license.code === 'B2') { timeSeconds = 22 * 60; passCount = 32; }
-            else if (license.code === 'C') { timeSeconds = 24 * 60; passCount = 36; }
+            else if (license.code === 'CTEST' || license.code === 'C') { timeSeconds = 24 * 60; passCount = 36; }
             else if (['D', 'E', 'F'].includes(license.code)) { timeSeconds = 26 * 60; passCount = 41; }
-            else { passCount = Math.floor(mapped.length * 0.9); }
+          } else {
+             // Sử dụng luôn config passScore từ mảng ban đầu nếu có lưu trong app state
+             const theLicense = licenseTypes.find(l => l.code === license.code);
+             if (theLicense && theLicense.description && theLicense.description.includes('Điều kiện đỗ:')) {
+                const parts = theLicense.description.split(': ')[1].split('/');
+                const extractedPassScore = parseInt(parts[0], 10);
+                if (!isNaN(extractedPassScore)) {
+                  passCount = extractedPassScore;
+                }
+             }
           }
 
           setExamQuestions(mapped);
           setExamConfig({ timeSeconds, passCount, paralysisMandatory: true });
           setSelectedExam({ 
-            title: `${license.code} - Thi Sát Hạch`, 
-            topic: `Thời gian: ${timeSeconds/60} phút - ${mapped.length} câu hỏi` 
+            title: `Đề Thi Hạng ${license.code.replace('TEST', '')}`, 
+            topic: `Thời gian: ${duration} phút - ${qCount} câu hỏi` 
           });
           return;
         } else {
