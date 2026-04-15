@@ -25,25 +25,6 @@ interface ReviewPageProps {
 const questionCache: Record<string, Question[]> = {};
 
 export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
-  // Read API-provided chapter question counts once per render (from localStorage 'chapters')
-  const apiCounts = React.useMemo(() => {
-    try {
-      if (typeof window === 'undefined') return new Map();
-      const raw = window.localStorage.getItem('chapters');
-      if (!raw) return new Map();
-      const parsed = JSON.parse(raw) as any[];
-      if (!Array.isArray(parsed)) return new Map();
-      const m: Map<number, number> = new Map();
-      for (const c of parsed) {
-        const id = Number(c.id);
-        const len = Array.isArray(c.questionIds) ? c.questionIds.length : 0;
-        m.set(id, len);
-      }
-      return m;
-    } catch (err) {
-      return new Map();
-    }
-  }, []);
   const [selectedChapter, setSelectedChapter] = useState<any>(null);
   const [showParalysisOnly, setShowParalysisOnly] = useState(false);
   const [activeQuestion, setActiveQuestion] = useState<Question | null>(null);
@@ -58,13 +39,15 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
         const res = await fetch(`${url}api/chuong`);
         if (!res.ok) throw new Error('Network response was not ok');
         const data = await res.json();
-        const formattedChapters = data.map((c: any) => ({
-          id: c.categoryId,
-          title: `Chương ${c.categoryId}`,
-          topic: c.categoryName,
-          icon: getIconForCategory(c.categoryId),
-          detail: "Đang cập nhật",
-        }));
+        const formattedChapters = data.map((c: any) => {
+          return {
+            id: c.categoryId,
+            title: `Chương ${c.categoryId}`,
+            topic: c.categoryName,
+            icon: getIconForCategory(c.categoryId),
+            detail: "Đang cập nhật",
+          };
+        });
         setChapters(formattedChapters);
       } catch (err) {
         console.error("Failed to fetch chapters", err);
@@ -135,10 +118,10 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
           <p className="text-white/90 drop-shadow">Học theo từng chương để nắm vững kiến thức luật giao thông đường bộ</p>
         </div>
         
-        <div className="grid grid-cols-2 gap-2 md:gap-4 sm:p-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4 sm:p-6 p-2">
           {chapters.map((chapter) => {
-            const apiCount = apiCounts.get(chapter.id);
-            const displayDetail = (typeof apiCount === 'number' && apiCount > 0) ? `${apiCount} câu` : chapter.detail;
+            const count = questions.filter(q => q.chapterId === chapter.id).length;
+            const displayDetail = count > 0 ? `${count} câu` : chapter.detail;
             return (
             <button 
               key={chapter.id}
@@ -195,68 +178,6 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
                 Ôn tập hiệu quả
               </span>
               <ArrowLeft className="w-5 h-5 text-gray-400 group-hover:text-red-600 rotate-180 transition-all" />
-            </div>
-          </button>
-
-          {/* Nút Câu Hỏi Biển Báo */}
-          <button
-            onClick={() => {
-              const chap = chapters.find(c => c.id === 5);
-              if (chap) setSelectedChapter(chap);
-            }}
-            className="bg-white p-2 md:p-6 rounded-xl shadow-md hover:shadow-xl border border-gray-100 hover:border-orange-200 transition-all duration-300 flex flex-col gap-4 hover:-translate-y-1 group text-left h-full"
-          >
-            <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4">
-              <div className="w-10 h-10 md:w-14 md:h-14 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform flex-shrink-0">
-                <AlertTriangle size={32} className="text-orange-500" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-[12px] md:text-lg font-bold text-gray-900 group-hover:text-orange-600 transition-colors">
-                  Câu hỏi Biển báo
-                </h3>
-              </div>
-            </div>
-
-            <p className="text-gray-700 text-[10px] md:text-sm leading-relaxed flex-1">
-              Tổng hợp các câu hỏi về hệ thống biển báo đường bộ
-            </p>
-
-            <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-2">
-              <span className="text-xs text-orange-600 font-medium bg-orange-50 px-2 py-1 rounded">
-                Biển báo & ký hiệu
-              </span>
-              <ArrowLeft className="w-5 h-5 text-gray-400 group-hover:text-orange-600 rotate-180 transition-all" />
-            </div>
-          </button>
-
-          {/* Nút Câu Hỏi Tình Huống */}
-          <button
-            onClick={() => {
-              const chap = chapters.find(c => c.id === 6);
-              if (chap) setSelectedChapter(chap);
-            }}
-            className="bg-white p-2 md:p-6 rounded-xl shadow-md hover:shadow-xl border border-gray-100 hover:border-purple-200 transition-all duration-300 flex flex-col gap-4 hover:-translate-y-1 group text-left h-full"
-          >
-            <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4">
-              <div className="w-10 h-10 md:w-14 md:h-14 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform flex-shrink-0">
-                <MapIcon size={32} className="text-purple-500" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-[12px] md:text-lg font-bold text-gray-900 group-hover:text-purple-600 transition-colors">
-                  Câu hỏi Tình huống
-                </h3>
-              </div>
-            </div>
-
-            <p className="text-gray-700 text-[10px] md:text-sm leading-relaxed flex-1">
-              Câu hỏi tình huống và các thế sa hình để luyện kỹ năng xử lý
-            </p>
-
-            <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-2">
-              <span className="text-xs text-purple-600 font-medium bg-purple-50 px-2 py-1 rounded">
-                Tình huống & sa hình
-              </span>
-              <ArrowLeft className="w-5 h-5 text-gray-400 group-hover:text-purple-600 rotate-180 transition-all" />
             </div>
           </button>
         </div>

@@ -13,19 +13,14 @@ const getLicenseIcon = (code: string) => {
 };
 
 const DEFAULT_LICENSE_STYLES = [
-  { color: "text-green-500", bg: "bg-green-50", border: "border-green-200", colSpan: "md:col-span-3" },
-  { color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-200", colSpan: "md:col-span-3" },
-  { color: "text-orange-500", bg: "bg-orange-50", border: "border-orange-200", colSpan: "md:col-span-2" },
-  { color: "text-purple-500", bg: "bg-purple-50", border: "border-purple-200", colSpan: "md:col-span-2" },
-  { color: "text-rose-500", bg: "bg-rose-50", border: "border-rose-200", colSpan: "md:col-span-2" }
-];
-
-const DEFAULT_LICENSE_TYPES: LicenseType[] = [
-  { code: "B1", name: "Hạng B1", description: "Ô tô số tự động, không kinh doanh (cá nhân, gia đình)", ...DEFAULT_LICENSE_STYLES[0], stats: "30 câu / 20 phút" },
-  { code: "B2", name: "Hạng B2", description: "Ô tô số sàn, kinh doanh vận tải (taxi, giao hàng…)", ...DEFAULT_LICENSE_STYLES[1], stats: "35 câu / 22 phút" },
-  { code: "C", name: "Hạng C", description: "Ô tô tải và chuyên dùng (trên 3,5 tấn)", ...DEFAULT_LICENSE_STYLES[2], stats: "40 câu / 24 phút" },
-  { code: "D", name: "Hạng D", description: "Ô tô chở người từ 10–30 chỗ", ...DEFAULT_LICENSE_STYLES[3], stats: "45 câu / 26 phút" },
-  { code: "E", name: "Hạng E", description: "Ô tô chở người trên 30 chỗ", ...DEFAULT_LICENSE_STYLES[4], stats: "45 câu / 26 phút" }
+  { color: "text-green-500", bg: "bg-green-50", border: "border-green-200", colSpan: "" },
+  { color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-200", colSpan: "" },
+  { color: "text-orange-500", bg: "bg-orange-50", border: "border-orange-200", colSpan: "" },
+  { color: "text-purple-500", bg: "bg-purple-50", border: "border-purple-200", colSpan: "" },
+  { color: "text-rose-500", bg: "bg-rose-50", border: "border-rose-200", colSpan: "" },
+  { color: "text-amber-500", bg: "bg-amber-50", border: "border-amber-200", colSpan: "" },
+  { color: "text-cyan-500", bg: "bg-cyan-50", border: "border-cyan-200", colSpan: "" },
+  { color: "text-indigo-500", bg: "bg-indigo-50", border: "border-indigo-200", colSpan: "" }
 ];
 
 export type LicenseType = {
@@ -85,20 +80,24 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
           setIsLoadingLicenses(false);
         }
         
-        const res = await fetch(url + 'api/BangLai');
+        const res = await fetch(url + 'api/vanbang');
         if (res.ok) {
           const data = await res.json();
-          console.log('API Raw BangLai/HangBang Data:', data);
-          const list = Array.isArray(data) ? data : (data.bangLais || data.hangBangs || data.data || data.items || []);
+          console.log('API Raw VanBang Data:', data);
+          
+          const list = Array.isArray(data) ? data : (data.data || data.items || []);
           if (Array.isArray(list) && list.length > 0) {
-            const mappedLicenses: LicenseType[] = list.map((item, index) => {
+            // Lọc các bản ghi dùng để test nội bộ (ví dụ: 'CTEST') ra khỏi danh sách hiển thị thẻ chọn
+            const displayList = list.filter((item: any) => !item.licenceCode.includes('TEST'));
+
+            const mappedLicenses: LicenseType[] = displayList.map((item, index) => {
               const style = DEFAULT_LICENSE_STYLES[index % DEFAULT_LICENSE_STYLES.length];
               return {
-                id: item.id || item.maBang || index,
-                code: item.tenBang || item.code || item.maBang || `Hạng ${index}`,
-                name: item.tenBang || item.name || `Hạng ${item.maBang || item.code || index}`,
-                description: item.moTa || item.description || `Ôn thi bằng lái ${item.tenBang || item.name || 'này'}`,
-                stats: `${item.soCauHoi || 30} câu / ${item.thoiGianThi || 20} phút`,
+                id: item.licenceId,
+                code: item.licenceCode,
+                name: `Hạng ${item.licenceCode}`,
+                description: `Điều kiện đỗ: ${item.passScore}/${item.questionCount} câu. Ôn thi giấy phép lái xe hạng ${item.licenceCode}.`,
+                stats: `${item.questionCount} câu / ${item.duration} phút`,
                 color: style.color,
                 bg: style.bg,
                 border: style.border,
@@ -110,14 +109,14 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
             return;
           }
         }
-        console.warn("Failed to fetch BangLai or empty, fallback to static list");
+        console.warn("Failed to fetch VanBang or empty.");
         if (licenseTypes.length === 0) {
-          setLicenseTypes(DEFAULT_LICENSE_TYPES);
+          setLicenseTypes([]);
         }
       } catch (err) {
         console.error("Error fetching licenses from API", err);
         if (licenseTypes.length === 0) {
-          setLicenseTypes(DEFAULT_LICENSE_TYPES);
+          setLicenseTypes([]);
         }
       } finally {
         setIsLoadingLicenses(false);
@@ -301,7 +300,7 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
             </p>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
             {isLoadingLicenses ? (
               <div className="col-span-full flex justify-center items-center py-10">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>

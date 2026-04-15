@@ -3,17 +3,18 @@ import { Outlet } from 'react-router-dom';
 import { AuthService } from '../../../services/authService';
 
 const ProtectedRoute: React.FC = () => {
-  // Sử dụng hàm isAuthenticated từ AuthService để kiểm tra cả token và role ADMIN
+  // Kiểm tra cả token và role ADMIN
   const isAuth = AuthService.isAuthenticated();
+  const isAdmin = localStorage.getItem('userRole') === 'ADMIN';
 
   useEffect(() => {
-    if (!isAuth) {
+    if (!isAuth || !isAdmin) {
       window.location.href = '/';
     }
-  }, [isAuth]);
+  }, [isAuth, isAdmin]);
 
   // Nếu không có token hoặc không phải ADMIN, chưa kịp chuyển trang thì render null
-  if (!isAuth) return null;
+  if (!isAuth || !isAdmin) return null;
 
   // Nếu hợp lệ, hiển thị các route con của Admin
   return <Outlet />;
