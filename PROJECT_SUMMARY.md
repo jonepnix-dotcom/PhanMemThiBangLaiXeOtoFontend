@@ -85,8 +85,18 @@
 - **Tối ưu hóa tải dữ liệu (App.tsx)**: Chuyển sang cơ chế tải toàn bộ 600 câu hỏi từ 7 API cùng lúc khi khởi động ứng dụng để tăng tốc độ trải nghiệm.
 - **Giao diện Ôn tập (QuizGame & ReviewPage)**: Bổ sung hiển thị chi tiết tên chương và chủ đề trực tiếp trên màn hình làm bài, giúp người dùng dễ dàng theo dõi thư mục đang học.
 
-**Phiên làm việc ngày 13/04/2026:**
-- **App.tsx & Quản lý trạng thái:**
+**Phiên làm việc ngày 15/04/2026:**
+- Cấu trúc thư viện và Framework:
+  - So sánh và đối chiếu các dependency của dự án (`package.json`). Cài đặt thêm các gói còn thiếu như `axios`, `js-cookie`, `@heroicons/react` và các gói `@types`.
+- Thiết lập lại hoàn toàn luồng quản trị (Admin Dashboard):
+  - Xóa bỏ toàn bộ luồng trang Admin cũ (`AdminLogin.tsx`, `AdminPage.tsx`, `ConsultationAdminPage.tsx`).
+  - Tích hợp một cấu trúc ứng dụng Admin mới hoàn toàn vào dự án (tách riêng thông qua `AdminApp.tsx` và cơ chế Dual App Route trong `main.tsx`).
+  - Thiết lập hệ thống bảo mật Admin bằng JWT Access Token và Role (`userRole === 'ADMIN'`) thông qua Axios Interceptors (điều hướng về `/` nếu gặp lỗi 401, 403).
+  - Loại bỏ hoàn toàn đường dẫn đăng nhập Admin riêng biệt `/login`. Admin giờ đây sẽ đăng nhập qua luồng `AuthPage.tsx` chung, sau đó có thể truy cập bằng nút "Trang Quản trị" xuất hiện ẩn trong menu User Dropdown (chỉ hiển thị với user là ADMIN).
+  - Giao diện và hiển thị:
+    - Đồng nhất khối Footer cho toàn trang. Thêm Footer giống Homepage vào trang Ôn tập (`ReviewPage.tsx`), và tùy chỉnh xóa Footer ở trang Tài liệu (`DocumentsPage.tsx`).
+    - Mở rộng gọi API động cho trang Ôn tập (`ReviewPage.tsx`): Xóa dữ liệu cứng, hiện tại hệ thống tự động fetch toàn bộ các chương học từ Backend qua biến cấu hình `url` (file `env.js`) và render icon, số lượng, nội dung theo ID trả về.
+  - **App.tsx & Quản lý trạng thái:**
   - Tối ưu hóa chức năng `handleLogout`: Thực hiện dọn dẹp kết nối SignalR (`resetSignalRConnection()`) và dừng kết nối một cách an toàn trước khi xóa dữ liệu LocalStorage.
   - Loại bỏ hoàn toàn khối logic đăng nhập riêng biệt cho Admin, cho phép trang `AdminPage` được truy cập trực tiếp thông qua trạng thái `currentPage = 'ADMIN'`.
 - **Hệ thống Xác thực (AuthPage.tsx):**

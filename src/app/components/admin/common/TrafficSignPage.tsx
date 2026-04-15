@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import trafficSignService, { TrafficSignDTO, CategoryDTO } from '../../../services/trafficSignService';
+import { url } from '../../../../env.js';
 import {
   PlusIcon, PencilSquareIcon, TrashIcon,
   MagnifyingGlassIcon, XMarkIcon, PhotoIcon,
@@ -8,7 +9,7 @@ import {
   CheckCircleIcon, ExclamationCircleIcon
 } from '@heroicons/react/24/outline';
 
-const IMAGE_BASE_URL = "https://localhost:52207/assets/uploads/";
+const IMAGE_BASE_URL = `${url}assets/uploads/`;
 const ITEMS_PER_PAGE = 8;
 
 // --- COMPONENT TOAST ---

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Shield, Wrench, AlertTriangle, Map as MapIcon, Zap, Gavel, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
 import { Question } from '@/app/types';
 import { QuizGame } from '@/app/components/QuizGame';
+import { url } from '../../env.js';
 
 const getIconForCategory = (id: number) => {
   switch (id) {
@@ -49,26 +51,26 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
   const [attemptResult, setAttemptResult] = useState<'correct' | 'wrong' | null>(null);
   const [chapters, setChapters] = useState<any[]>([]);
 
+  // Fetch chuong data directly component load
   useEffect(() => {
-    const fetchChapters = async () => {
+    const fetchChuong = async () => {
       try {
-        const res = await fetch(`https://localhost:52207/api/chuong`);
-        if (res.ok) {
-          const data = await res.json();
-          const formattedChapters = data.map((c: any) => ({
-            id: c.categoryId,
-            title: `Chương ${c.categoryId}`,
-            topic: c.categoryName,
-            icon: getIconForCategory(c.categoryId),
-            detail: "Đang cập nhật",
-          }));
-          setChapters(formattedChapters);
-        }
+        const res = await fetch(`${url}api/chuong`);
+        if (!res.ok) throw new Error('Network response was not ok');
+        const data = await res.json();
+        const formattedChapters = data.map((c: any) => ({
+          id: c.categoryId,
+          title: `Chương ${c.categoryId}`,
+          topic: c.categoryName,
+          icon: getIconForCategory(c.categoryId),
+          detail: "Đang cập nhật",
+        }));
+        setChapters(formattedChapters);
       } catch (err) {
         console.error("Failed to fetch chapters", err);
       }
     };
-    fetchChapters();
+    fetchChuong();
   }, []);
 
   const [wrongQuestionIds, setWrongQuestionIds] = useState<string[]>(() => {

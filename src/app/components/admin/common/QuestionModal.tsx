@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, DragEvent, useRef } from 'react';
+import axios from 'axios';
+import { url } from '../../../../env.js';
 import {
   XMarkIcon, PlusIcon, TrashIcon, PhotoIcon,
   TagIcon, CheckCircleIcon, ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 import { Question } from '../../../admin-types';
-import axios from 'axios';
 import { questionService } from '../../../services/questionService';
 import { IMAGE_BASE_URL } from '../../../config';
 
@@ -79,9 +80,10 @@ export const QuestionFormModal: React.FC<{ data: Question | null, onClose: () =>
   const [toast, setToast] = useState<{ msg: string, type: 'success' | 'error' } | null>(null);
 
   useEffect(() => {
-    axios.get('https://localhost:52207/api/chuong')
+    // Fetch danh sách chương
+    axios.get(`${url}api/chuong`)
       .then(res => setAllCategories(res.data))
-      .catch(err => console.error("Lỗi fetch danh sách chương:", err));
+      .catch(err => console.error(err));
   }, []);
 
   useEffect(() => {

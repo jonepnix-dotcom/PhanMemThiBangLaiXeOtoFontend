@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { url } from '../../../../env.js';
+import {
+  PlusIcon, PencilSquareIcon, TrashIcon, MagnifyingGlassIcon, XMarkIcon, ExclamationCircleIcon, PhotoIcon, CheckCircleIcon, InboxIcon, ArrowPathIcon, HashtagIcon, ArrowRightOnRectangleIcon
+} from '@heroicons/react/24/outline';
 import { questionService } from '../../../services/questionService';
 import { AuthService } from '../../../services/authService';
 import { QuestionResponse, QuestionFilter, Category } from '../../../admin-types';
@@ -7,14 +11,6 @@ import QuestionList from './QuestionList';
 import { QuestionFilterComponent } from './QuestionFilter';
 import { Pagination } from './Pagination';
 import { QuestionFormModal } from './QuestionModal';
-import {
-  PlusIcon,
-  MagnifyingGlassIcon,
-  ArrowRightOnRectangleIcon,
-  ChevronUpIcon,
-  HashtagIcon,
-  InboxIcon
-} from '@heroicons/react/24/outline';
 
 const QuestionsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -28,7 +24,7 @@ const QuestionsPage: React.FC = () => {
 
   const fetchCategories = async () => {
     try {
-      const res = await axios.get('https://localhost:52207/api/chuong');
+      const res = await axios.get(`${url}api/chuong`);
       setCategories(res.data);
     } catch (err) {
       console.error("Lỗi lấy danh sách chương:", err);

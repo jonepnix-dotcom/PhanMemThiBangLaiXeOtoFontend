@@ -1,16 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { QuestionFilter } from '../../../admin-types';
-import { FunnelIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
-
-interface Category {
-  categoryId: number;
-  categoryName: string;
-}
+import { url } from '../../../../env.js';
+import { QuestionFilter as IFilter, Category } from '../../../admin-types/question.types';
+import { FunnelIcon } from '@heroicons/react/24/outline';
 
 interface QuestionFilterProps {
-  filter: QuestionFilter;
-  onFilterChange: (filter: QuestionFilter) => void;
+  filter: IFilter;
+  onFilterChange: (filter: IFilter) => void;
 }
 
 export const QuestionFilterComponent: React.FC<QuestionFilterProps> = ({
@@ -21,13 +17,13 @@ export const QuestionFilterComponent: React.FC<QuestionFilterProps> = ({
   const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
-    // Gọi API lấy danh sách chương
-    axios.get('https://localhost:52207/api/chuong')
+    // Fetch list of chapters/categories
+    axios.get(`${url}api/chuong`)
       .then(res => setCategories(res.data))
-      .catch(err => console.error("Lỗi lấy danh sách chương:", err));
+      .catch(err => console.error("Filter: Failed to fetch categories:", err));
   }, []);
 
-  const handleChange = (key: keyof QuestionFilter, value: any) => {
+  const handleChange = (key: keyof IFilter, value: any) => {
     onFilterChange({ ...filter, [key]: value, trang: 1 });
   };
 
