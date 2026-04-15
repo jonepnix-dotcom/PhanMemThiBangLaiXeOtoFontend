@@ -104,7 +104,7 @@ export const DocumentsPage: React.FC = () => {
         </motion.div>
 
         {/* Documents List */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-4">
           <AnimatePresence>
             {filteredDocs.length === 0 ? (
               <motion.div 
@@ -128,38 +128,44 @@ export const DocumentsPage: React.FC = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ delay: index * 0.05 }}
-                  className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:-translate-y-1 hover:border-blue-400 transition-all group flex flex-col justify-between gap-4 h-full"
+                  className="bg-white p-5 lg:p-7 rounded-3xl shadow-sm border border-gray-100 hover:shadow-[0_20px_40px_-15px_rgba(59,130,246,0.15)] hover:-translate-y-2 hover:border-blue-200 transition-all duration-300 group flex flex-col justify-between gap-5 h-full relative overflow-hidden"
                 >
-                  <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-3 sm:gap-4 min-w-0 w-full mb-4">
-                    <div className="p-3 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-colors shrink-0">
-                      <FileText size={24} />
+                  <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-blue-50/60 to-transparent rounded-bl-[120px] -z-10 group-hover:scale-125 transition-transform duration-700"></div>
+                  
+                  <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4 lg:gap-5 min-w-0 w-full relative z-10">
+                    <div className="p-4 bg-blue-50/80 text-blue-600 rounded-2xl group-hover:bg-blue-600 group-hover:text-white group-hover:shadow-md transition-all duration-300 shrink-0">
+                      <FileText size={28} className="lg:w-8 lg:h-8" />
                     </div>
-                    <div className="min-w-0 flex-1 w-full">
-                      <h3 className="font-semibold text-lg text-gray-900 group-hover:text-blue-600 transition-colors break-words line-clamp-2 text-base sm:text-lg">
+                    <div className="min-w-0 flex-1 w-full pt-1 lg:pt-2">
+                      <h3 className="font-bold text-gray-800 group-hover:text-blue-700 transition-colors break-words line-clamp-2 text-base md:text-lg lg:text-xl mb-1.5 leading-snug">
                         {d.name}
                       </h3>
-                      <div className="flex flex-wrap justify-center sm:justify-start gap-1 sm:gap-2 mt-2 text-xs text-gray-400 flex-wrap">
-                        <span>Đăng lúc: {new Date(d.createdAt).toLocaleDateString('vi-VN', {
-                          year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                        })}</span>
+                      <div className="flex flex-wrap justify-center sm:justify-start gap-1 lg:gap-2 mt-2 text-xs lg:text-sm text-gray-500 font-medium">
+                        <span className="flex items-center">
+                          {new Date(d.createdAt).toLocaleDateString('vi-VN', {
+                            year: 'numeric', month: '2-digit', day: '2-digit'
+                          })}
+                        </span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 w-full justify-between border-t pt-4 border-gray-100 mt-auto">
-                    <button 
-                      onClick={() => setViewDoc(d)} 
-                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors"
+                  <div className="flex items-center gap-3 lg:gap-4 w-full justify-between sm:justify-end border-t pt-5 lg:pt-6 border-gray-50 mt-auto relative z-10">
+                    <button
+                      onClick={() => setViewDoc(d)}
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 lg:py-3 text-sm lg:text-base font-semibold text-blue-600 bg-blue-50/80 hover:bg-blue-100 rounded-xl transition-colors"
                     >
-                      <Eye size={16} />
-                      <span>Xem</span>
+                      <Eye size={18} />
+                      <span className="hidden lg:inline">Xem trực tiếp</span>
+                      <span className="inline lg:hidden">Xem</span>
                     </button>
-                    <button 
-                      onClick={() => handleDownload(d.link, d.name)} 
-                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-sm"
+                    <button
+                      onClick={() => handleDownload(d.link, d.name)}
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 lg:py-3 text-sm lg:text-base font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg hover:shadow-blue-500/30 rounded-xl transition-all"
                     >
-                      <Download size={16} />
-                      <span className="sm:hidden">Tải về</span>
+                      <Download size={18} />
+                      <span className="hidden lg:inline">Tải về</span>
+                      <span className="inline lg:hidden">Tải</span>
                     </button>
                   </div>
                 </motion.div>
@@ -175,7 +181,7 @@ export const DocumentsPage: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-3 sm:p-6 bg-gray-900/80 backdrop-blur-sm"
+              className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-gray-900/80 backdrop-blur-sm"
             >
               <motion.div 
                 initial={{ scale: 0.95, opacity: 0, y: 20 }}

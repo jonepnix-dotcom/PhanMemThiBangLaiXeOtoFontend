@@ -9,13 +9,12 @@ import { ProfilePage } from '@/app/components/ProfilePage';
 import { HistoryPage } from '@/app/components/HistoryPage';
 import { ThiPage } from '@/app/components/ThiPage';
 import { ReviewPage } from '@/app/components/ReviewPage';
+// Removes admin pages
 import { ConsultationUserPage } from '@/app/components/ConsultationUserPage';
-import { ConsultationAdminPage } from '@/app/components/ConsultationAdminPage';
 import { HomePage } from '@/app/components/HomePage';
 import { IntroPage } from '@/app/components/IntroPage';
 import { PrivacyPolicyPage } from '@/app/components/PrivacyPolicyPage';
 import { ContactPage } from '@/app/components/ContactPage';
-import { AdminPage } from '@/app/components/AdminPage';
 import { DocumentsPage } from '@/app/components/DocumentsPage';
 import { Question } from '@/app/types';
 import { Chapter, CHAPTERS } from '@/app/types'; // Ensure Chapter and CHAPTERS are imported
@@ -27,7 +26,7 @@ import { SignalRProvider } from './contexts/SignalRContext';
 
 
 // Định nghĩa các trang chính
-type PageKey = 'HOME' | 'INTRO' | 'THI' | 'REVIEW' | 'CONSULTATION' | 'DOCS' | 'PROFILE' | 'HISTORY' | 'PRIVACY' | 'CONTACT' | 'ADMIN';
+type PageKey = 'HOME' | 'INTRO' | 'THI' | 'REVIEW' | 'CONSULTATION' | 'DOCS' | 'PROFILE' | 'HISTORY' | 'PRIVACY' | 'CONTACT';
 
 const PAGES: Record<PageKey, string> = {
   HOME: 'Trang Chủ',
@@ -40,7 +39,6 @@ const PAGES: Record<PageKey, string> = {
   HISTORY: 'Lịch sử',
   PRIVACY: 'Chính sách bảo mật',
   CONTACT: 'Liên hệ & Góp ý',
-  ADMIN: 'Quản trị hệ thống',
 };
 
 const App = () => {
@@ -64,7 +62,6 @@ const App = () => {
         // Prefer the current pathname (useful when user navigates directly to /admin)
         const path = window.location.pathname || '/';
         if (path === '/' || path.startsWith('/home')) return 'HOME';
-        if (path === '/admin') return 'ADMIN';
         if (path.startsWith('/intro') || path.startsWith('/gioi-thieu')) return 'INTRO';
         if (path.startsWith('/docs')) return 'DOCS';
         if (path.startsWith('/thi')) return 'THI';
@@ -77,7 +74,7 @@ const App = () => {
 
         // Fall back to saved page in localStorage
         const saved = window.localStorage.getItem('currentPage') as PageKey | null;
-        const validKeys: PageKey[] = ['HOME', 'INTRO', 'THI', 'REVIEW', 'DOCS', 'PROFILE', 'HISTORY', 'PRIVACY', 'CONTACT', 'ADMIN'];
+        const validKeys: PageKey[] = ['HOME', 'INTRO', 'THI', 'REVIEW', 'DOCS', 'PROFILE', 'HISTORY', 'PRIVACY', 'CONTACT'];
         if (saved && validKeys.includes(saved)) return saved;
       }
     } catch (err) {
@@ -195,7 +192,7 @@ const App = () => {
         
         const chapterPromises = [1,2,3,4,5,6,7].map(async (chuong) => {
           try {
-            const res = await fetch(`${url}api/CauHoi?Chuong=${chuong}&pageSize=1000`);
+            const res = await fetch(`${url}api/CauHoi?Chuong=${chuong}&SoLuong=1000`);
             if (!res.ok) return [];
             
             const rawData = await res.json();
@@ -206,7 +203,7 @@ const App = () => {
               const additionalPromises = [];
               for (let i = 2; i <= rawData.totalPages; i++) {
                 additionalPromises.push(
-                  fetch(`${url}api/CauHoi?Chuong=${chuong}&pageSize=1000&page=${i}`).then(r => r.json())
+                  fetch(`${url}api/CauHoi?Chuong=${chuong}&SoLuong=1000&trang=${i}`).then(r => r.json())
                 );
               }
               const additionalData = await Promise.all(additionalPromises);
@@ -347,7 +344,7 @@ const App = () => {
     try {
       if (typeof window !== 'undefined') {
         const pathMap: Record<PageKey, string> = {
-          HOME: '/home', INTRO: '/intro', THI: '/thi', REVIEW: '/review', CONSULTATION: '/consultation', DOCS: '/docs', PROFILE: '/profile', HISTORY: '/history', PRIVACY: '/privacy', CONTACT: '/contact', ADMIN: '/admin'
+          HOME: '/home', INTRO: '/intro', THI: '/thi', REVIEW: '/review', CONSULTATION: '/consultation', DOCS: '/docs', PROFILE: '/profile', HISTORY: '/history', PRIVACY: '/privacy', CONTACT: '/contact'
         };
         const newPath = pathMap[page] || '/home';
         window.history.replaceState(null, '', newPath);
@@ -364,7 +361,7 @@ const App = () => {
       if (typeof window !== 'undefined') {
         window.localStorage.setItem('currentPage', currentPage);
         const pathMap: Record<PageKey, string> = {
-          HOME: '/home', INTRO: '/intro', THI: '/thi', REVIEW: '/review', CONSULTATION: '/consultation', DOCS: '/docs', PROFILE: '/profile', HISTORY: '/history', PRIVACY: '/privacy', CONTACT: '/contact', ADMIN: '/admin'
+          HOME: '/home', INTRO: '/intro', THI: '/thi', REVIEW: '/review', CONSULTATION: '/consultation', DOCS: '/docs', PROFILE: '/profile', HISTORY: '/history', PRIVACY: '/privacy', CONTACT: '/contact'
         };
         const newPath = pathMap[currentPage] || '/home';
         if (window.location.pathname !== newPath) {
@@ -508,9 +505,6 @@ const App = () => {
             </div>
           );
         }
-        if (userRole === 'ADMIN') {
-          return <ConsultationAdminPage />;
-        }
         return (
           <ConsultationUserPage />
         );
@@ -547,8 +541,6 @@ const App = () => {
             onBackToHome={() => handlePageChange('HOME')}
           />
         );
-      case 'ADMIN':
-        return <AdminPage questions={questions} setQuestions={setQuestions} chapters={chapters} />;
       case 'DOCS':
         return <DocumentsPage />;
       default:
@@ -690,7 +682,15 @@ const App = () => {
                     <p className="font-bold text-gray-900">{userData.name}</p>
                     {userData.email && <p className="text-sm text-gray-500">{userData.email}</p>}
                   </div>
-                  {/* Admin access removed from UI — use /admin path to access admin area */}
+                  {userRole === 'ADMIN' && (
+                    <button
+                      className="w-full bg-gradient-to-r from-blue-700 to-cyan-600 hover:from-blue-800 hover:to-cyan-700 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-all shadow-sm"
+                      onClick={() => window.location.href = '/admin'}
+                    >
+                      <Shield size={18} />
+                      <span>Trang Quản trị</span>
+                    </button>
+                  )}
                   <button
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm"
                     onClick={() => handlePageChange('PROFILE')}
