@@ -117,6 +117,18 @@
   - Cập nhật chức năng xem chi tiết Văn bằng: Tự động đính kèm hậu tố `TEST` vào mã bằng (ví dụ `C` thành `CTEST`, `D` thành `DTEST`) để nạp cấu trúcJSON từ Backend (API `/api/CauHoi/CauTruc?BangLai=...TEST`) và đồng bộ trực tiếp thông số (số câu/thời gian) lên thẻ hiển thị ở màn hình Admin.
   - Bổ sung và thiết kế lại giao diện **Cửa sổ thêm Văn bằng mới** (Add License Modal): Cải tiến bố cục rộng, sạch sẽ, chia làm 2 phần rõ rệt (Thông tin chung & Cấu trúc đề thi). Cho phép quản trị viên thêm trực tiếp số lượng câu hỏi chi tiết phân rã theo từng Chương (Category) và gửi POST Request tích hợp vào API `/api/licences/`.
 ### Cập nhật mới nhất (April 2026):
+- **Cập nhật hệ thống API & TypeScript:**
+  - Sửa lỗi import type trong `questionService.ts` để đồng bộ lấy đúng `QuestionResponse` và `QuestionFilter` từ thư mục `admin-types`.
+- **Giao diện & Logic trang Thi Sát Hạch (`ThiPage.tsx`):**
+  - Chuyển đổi sang nạp danh sách trực tiếp từ API (`/api/vanbang`), xóa bỏ cache `sessionStorage` giúp dữ liệu văn bằng và cập nhật hiển thị ngay lập tức (real-time) sau khi Admin thay đổi.
+  - Tích hợp chuẩn xác gọi API cấu trúc đề thi (`/api/CauHoi/CauTruc?BangLai=...`), hỗ trợ parse cấu trúc JSON lồng nhau (Nested JSON) linh hoạt và xử lý lấy các thông số động như thời gian làm bài, điểm đậu (`passScore`) trực tiếp từ dữ liệu backend thay vì gán tĩnh.
+- **Nâng cấp UI/UX Giao diện Tư vấn trực tuyến (`ConsultationUserPage.tsx`):**
+  - Đập đi xây lại giao diện sảnh chờ kết nối tư vấn, sử dụng toàn bộ **Tailwind CSS** và icon từ `lucide-react`. 
+  - Tích hợp Slide banner động theo thời gian, tối ưu hiển thị chuẩn Mobile First giúp tương thích mọi thiết bị di động.
+- **Nâng cấp UI/UX Màn hình gọi Video (`VideoCallLayout.tsx`):**
+  - Xóa bỏ file CSS tĩnh, cấu trúc lại layout gọi Video theo chuẩn thiết kế hiện đại (Dark theme & Glassmorphism).
+  - Khung hình Camera của học viên được bo góc, đặt nổi dạng Picture-in-Picture ở góc màn hình.
+  - Sidebar hiển thị Chat và biểu đồ trực quan hóa âm thanh (Audio Visualizer) kết hợp thanh điều khiển Control Bar gọn gàng, tăng trải nghiệm người dùng tối đa.
 - **Quản lý thiết lập văn bằng (Licence Setup):**
   - **Giới hạn số lượng câu hỏi:** Cập nhật logic trong `LicencePage.tsx` chặn người dùng cấu hình số lượng câu hỏi của các chương vượt quá `Tổng số câu` đã định của văn bằng. Nút "+ Thêm chương" sẽ tự động bị vô hiệu hóa khi tổng số câu phân bổ đạt mức tối đa.
   - **Câu hỏi điểm liệt:** Bổ sung xử lý hiển thị danh mục ảo "🚨 CÂU HỎI ĐIỂM LIỆT" (với `categoryId: 0`) vào đầu danh sách lựa chọn cấu trúc chương để Admin có thể cấu hình chính xác số lượng câu điểm liệt yêu cầu trong mỗi đề thi.
