@@ -4,6 +4,7 @@ import AdminLayout from './components/admin/common/AdminLayout';
 import QuestionsPage from './components/admin/common/QuestionsPage';
 import LicencePage from './components/admin/common/LicencePage';
 import TrafficSignPage from './components/admin/common/TrafficSignPage';
+import ChapterPage from './components/admin/common/ChapterPage';
 import ProtectedRoute from './components/admin/auth/ProtectedRoute';
 
 function AdminApp() {
@@ -19,6 +20,7 @@ function AdminApp() {
             <Route path="questions" element={<QuestionsPage />} />
             <Route path="licences" element={<LicencePage />} />
             <Route path="traffic-signs" element={<TrafficSignPage />} />
+            <Route path="chapters" element={<ChapterPage />} />
           </Route>
         </Route>
 

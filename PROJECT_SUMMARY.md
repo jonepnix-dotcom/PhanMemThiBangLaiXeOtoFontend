@@ -116,3 +116,7 @@
   - Thay thế hộp thoại thông báo thô (`alert()`) bằng một **Modal UI hiện đại**, hiển thị chuyên nghiệp chi tiết của văn bằng khi được nhấn vào (như thời gian thi, số câu chuẩn, tổng lượng câu ngân hàng gọi từ API `/api/CauHoi/CauTruc?BangLai=...`).
   - Cập nhật chức năng xem chi tiết Văn bằng: Tự động đính kèm hậu tố `TEST` vào mã bằng (ví dụ `C` thành `CTEST`, `D` thành `DTEST`) để nạp cấu trúcJSON từ Backend (API `/api/CauHoi/CauTruc?BangLai=...TEST`) và đồng bộ trực tiếp thông số (số câu/thời gian) lên thẻ hiển thị ở màn hình Admin.
   - Bổ sung và thiết kế lại giao diện **Cửa sổ thêm Văn bằng mới** (Add License Modal): Cải tiến bố cục rộng, sạch sẽ, chia làm 2 phần rõ rệt (Thông tin chung & Cấu trúc đề thi). Cho phép quản trị viên thêm trực tiếp số lượng câu hỏi chi tiết phân rã theo từng Chương (Category) và gửi POST Request tích hợp vào API `/api/licences/`.
+### Cập nhật mới nhất (April 2026):
+- **Quản lý thiết lập văn bằng (Licence Setup):**
+  - **Giới hạn số lượng câu hỏi:** Cập nhật logic trong `LicencePage.tsx` chặn người dùng cấu hình số lượng câu hỏi của các chương vượt quá `Tổng số câu` đã định của văn bằng. Nút "+ Thêm chương" sẽ tự động bị vô hiệu hóa khi tổng số câu phân bổ đạt mức tối đa.
+  - **Câu hỏi điểm liệt:** Bổ sung xử lý hiển thị danh mục ảo "🚨 CÂU HỎI ĐIỂM LIỆT" (với `categoryId: 0`) vào đầu danh sách lựa chọn cấu trúc chương để Admin có thể cấu hình chính xác số lượng câu điểm liệt yêu cầu trong mỗi đề thi.

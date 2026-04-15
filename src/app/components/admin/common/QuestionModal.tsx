@@ -62,7 +62,7 @@ const AutoResizeTextArea: React.FC<{
   );
 };
 
-export const QuestionFormModal: React.FC<{ data: Question | null, onClose: () => void, onSuccess: () => void }> = ({ data, onClose, onSuccess }) => {
+export const QuestionFormModal: React.FC<{ data: Question | null, onClose: () => void, onSuccess: () => void, defaultCategoryId?: number }> = ({ data, onClose, onSuccess, defaultCategoryId }) => {
   const [ModalMode, setModalMode] = useState<'CREATE' | 'EDIT'>(data ? 'EDIT' : 'CREATE');
   const [content, setContent] = useState('');
   const [explain, setExplain] = useState('');
@@ -73,7 +73,7 @@ export const QuestionFormModal: React.FC<{ data: Question | null, onClose: () =>
   const [answerDeletedIds, setAnswerDeletedIds] = useState<Number[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [allCategories, setAllCategories] = useState<Category[]>([]);
-  const [selectedCatIds, setSelectedCatIds] = useState<number[]>([]);
+  const [selectedCatIds, setSelectedCatIds] = useState<number[]>(defaultCategoryId ? [defaultCategoryId] : []);
   const [answers, setAnswers] = useState<Answer[]>([{ text: '', isCorrect: false }, { text: '', isCorrect: false }]);
 
   // --- STATE TOAST ---
@@ -98,10 +98,10 @@ export const QuestionFormModal: React.FC<{ data: Question | null, onClose: () =>
       setSelectedCatIds(ids);
       setAnswers(data.answers?.map(a => ({ id: a.id, text: a.answerContent, isCorrect: a.isCorrect })) || []);
     } else {
-      setContent(''); setExplain(''); setIsCritical(false); setPreviewUrl(''); setSelectedCatIds([]);
+      setContent(''); setExplain(''); setIsCritical(false); setPreviewUrl(''); setSelectedCatIds(defaultCategoryId ? [defaultCategoryId] : []);
       setAnswers([{ text: '', isCorrect: false }, { text: '', isCorrect: false }]);
     }
-  }, [data]);
+  }, [data, defaultCategoryId]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};

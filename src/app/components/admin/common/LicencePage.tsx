@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { LicenceService } from '../../../services/licenceService';
-import {
-  PlusIcon, TrashIcon, PencilSquareIcon, ArrowLeftIcon,
+import { PlusIcon, TrashIcon, PencilSquareIcon, ArrowLeftIcon,
   ListBulletIcon, ClockIcon, AcademicCapIcon,
   CheckBadgeIcon, MagnifyingGlassIcon, HashtagIcon,
-  InboxIcon, BeakerIcon
+  InboxIcon, BeakerIcon, DocumentTextIcon
 } from '@heroicons/react/24/outline';
+import { url } from '../../../../env.js';
 
 const LicenceCardSkeleton = () => (
   <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-100 animate-pulse">
@@ -30,6 +30,7 @@ const LicenceManagement: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [totalQuestions, setTotalQuestions] = useState<number>(0);
   const [showToast, setShowToast] = useState<{ show: boolean, msg: string, type: 'success' | 'error' }>({
     show: false, msg: '', type: 'success'
   });
@@ -85,12 +86,24 @@ const LicenceManagement: React.FC = () => {
   const loadData = async () => {
     try {
       setLoading(true);
+      
+      // Lấy tổng số lượng câu hỏi hiện tại trong ngân hàng
+      fetch(`${url}api/CauHoi?SoLuong=1`)
+        .then(res => res.json())
+        .then(data => {
+            if (data && data.questionCount !== undefined) {
+                setTotalQuestions(data.questionCount);
+            }
+        })
+        .catch(err => console.error("Error fetching total questions:", err));
+
       const [resVB, resC] = await Promise.all([
         LicenceService.getAllLicences(),
         LicenceService.getCategories()
       ]);
       setLicences((resVB || []).map((l: any) => sanitizeData(l)));
-      setCategories(resC || []);
+      // Bổ sung thêm chương giả cho 'Câu điểm liệt' (categoryId 0) vào đầu mảng
+      setCategories([{ categoryId: 0, categoryName: '🚨 CÂU HỎI ĐIỂM LIỆT' }, ...(resC || [])]);
     } catch (err) {
       triggerToast("Lỗi tải dữ liệu!", "error");
     } finally {
@@ -129,7 +142,13 @@ const LicenceManagement: React.FC = () => {
       const selectedCat = categories.find(c => Number(c.categoryId) === Number(value));
       newRules[index] = { ...newRules[index], categoryId: Number(value), categoryName: selectedCat?.categoryName || '' };
     } else {
-      newRules[index] = { ...newRules[index], [field]: Math.max(0, Number(value)) };
+      let numVal = Math.max(0, Number(value));
+      if (field === 'questionCount') {
+        const otherTotal = newRules.reduce((sum, r, i) => sum + (i === index ? 0 : (Number(r.questionCount) || 0)), 0);
+        const maxAllowed = Math.max(0, (formData.QuestionCount || formData.questionCount || 0) - otherTotal);
+        numVal = Math.min(numVal, maxAllowed);
+      }
+      newRules[index] = { ...newRules[index], [field]: numVal };
     }
     setFormData({ ...formData, licenceRule: newRules });
   };
@@ -307,12 +326,30 @@ const LicenceManagement: React.FC = () => {
                   <h3 className="text-[10px] font-black text-indigo-800 uppercase tracking-[0.2em] flex items-center italic">
                     <BeakerIcon className="h-5 w-5 mr-2 text-indigo-600" /> Cấu trúc phân bổ câu hỏi
                   </h3>
-                  <button
-                    onClick={() => setFormData({ ...formData, licenceRule: [...(formData.licenceRule || []), { categoryId: categories[0]?.categoryId, questionCount: 0 }] })}
-                    className="text-[9px] font-black text-indigo-600 px-5 py-2.5 rounded-xl border-2 border-indigo-100 hover:bg-indigo-50 hover:border-indigo-600 transition-all uppercase tracking-widest"
-                  >
-                    + Thêm chương
-                  </button>
+                  
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100/50 shadow-sm" title="Số lượng câu hỏi đã phân bổ">
+                        <DocumentTextIcon className="h-4 w-4 text-indigo-500 mr-1.5" />
+                        <span className="text-[10px] font-black text-indigo-700 leading-none">
+                          Đã phân bổ: {currentTotal} / {formData.questionCount || 0} câu
+                        </span>
+                      </div>
+
+                        <button
+                        onClick={() => {
+                          if (currentTotal >= (formData.QuestionCount || formData.questionCount || 0)) return;
+                          setFormData({ ...formData, licenceRule: [...(formData.licenceRule || []), { categoryId: categories[0]?.categoryId, questionCount: 0 }] });
+                        }}
+                        disabled={currentTotal >= (formData.QuestionCount || formData.questionCount || 0)}
+                        className={`text-[9px] font-black px-5 py-2.5 rounded-xl border-2 transition-all uppercase tracking-widest ${
+                          currentTotal >= (formData.QuestionCount || formData.questionCount || 0)
+                            ? 'text-gray-400 border-gray-100 bg-gray-50 cursor-not-allowed'
+                            : 'text-indigo-600 border-indigo-100 hover:bg-indigo-50 hover:border-indigo-600'
+                        }`}
+                      >
+                        + Thêm chương
+                      </button>
+                  </div>
                 </div>
 
                 <div className="space-y-4">

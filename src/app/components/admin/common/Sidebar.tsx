@@ -4,6 +4,7 @@ import {
   DocumentTextIcon,
   IdentificationIcon,
   Squares2X2Icon, // Icon phù hợp cho Biển báo
+  BookOpenIcon, // Icon cho Chương
   ChevronLeftIcon,
 } from '@heroicons/react/24/outline';
 
@@ -11,7 +12,8 @@ import {
 const navigation = [
   { name: 'Câu hỏi', icon: DocumentTextIcon, href: '/admin/questions' },
   { name: 'Văn bằng', icon: IdentificationIcon, href: '/admin/licences' },
-  { name: 'Biển báo', icon: Squares2X2Icon, href: '/admin/traffic-signs' }, // Mục mới thêm
+  { name: 'Biển báo', icon: Squares2X2Icon, href: '/admin/traffic-signs' },
+  { name: 'Chương', icon: BookOpenIcon, href: '/admin/chapters' },
 ];
 
 export const Sidebar = () => {

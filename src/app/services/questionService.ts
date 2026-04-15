@@ -3,7 +3,7 @@
 // Thành dòng này:
 import apiClient from '../api/axiosClient';
 
-import { QuestionResponse, QuestionFilter } from '../types';
+import { QuestionResponse, QuestionFilter } from '../admin-types/question.types';
 
 // 2. Không cần khai báo API_URL nữa vì đã có trong baseURL của apiClient
 // const API_URL = 'https://localhost:52207/api';

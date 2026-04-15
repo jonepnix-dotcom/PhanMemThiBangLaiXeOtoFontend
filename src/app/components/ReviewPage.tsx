@@ -27,6 +27,8 @@ const questionCache: Record<string, Question[]> = {};
 export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
   const [selectedChapter, setSelectedChapter] = useState<any>(null);
   const [showParalysisOnly, setShowParalysisOnly] = useState(false);
+  const [paralysisQuestions, setParalysisQuestions] = useState<Question[]>([]);
+  const [loadingParalysis, setLoadingParalysis] = useState(false);
   const [activeQuestion, setActiveQuestion] = useState<Question | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [attemptResult, setAttemptResult] = useState<'correct' | 'wrong' | null>(null);
@@ -80,7 +82,7 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
   // Lọc trực tiếp từ kho dữ liệu đã được App.tsx lấy sẵn (chứa toàn bộ 600 câu ngay khi vào web)
   const filteredQuestions = React.useMemo(() => {
     if (showParalysisOnly) {
-      return questions.filter(q => q.isParalysis);
+      return paralysisQuestions.length > 0 ? paralysisQuestions : questions.filter(q => q.isParalysis);
     }
 
     if (selectedChapter) {
@@ -89,6 +91,53 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
     }
     return [];
   }, [questions, selectedChapter, showParalysisOnly]);
+
+  const handleParalysisClick = async () => {
+    try {
+      setLoadingParalysis(true);
+      const res = await fetch(`${url}api/CauHoi?CauDiemLiet=true&SoLuong=1000`);
+      if (!res.ok) throw new Error('Network error');
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error('Invalid JSON response:', text);
+        throw e;
+      }
+      
+      const qArray = Array.isArray(data) ? data : (data.questions || data.data || data.items || []);
+      const mappedQuestions: Question[] = qArray.map((q: any) => {
+        const options = Array.isArray(q.answers) ? q.answers.map((a: any) => a?.answerContent ?? String(a)) : [];
+        let correctIndex = 0;
+        if (Array.isArray(q.answers)) {
+          const idx = q.answers.findIndex((a: any) => a && a.isCorrect === true);
+          if (idx !== -1) correctIndex = idx;
+        }
+
+        return {
+          id: `api-${String(q.id)}`,
+          content: q.questionContent ?? '',
+          options,
+          correctAnswer: Math.max(0, Math.min(correctIndex, options.length - 1)),
+          chapterId: (q.categories && q.categories.length > 0) ? q.categories[0] : 0,
+          isParalysis: !!q.isCritical,
+          imageUrl: q.imageUrl ?? '',
+          explanation: q.explanation ?? '',
+          optionExplanations: [],
+        };
+      });
+
+      setParalysisQuestions(mappedQuestions);
+      setShowParalysisOnly(true);
+    } catch (err) {
+      console.error('Failed to fetch critical questions:', err);
+      // Fallback
+      setShowParalysisOnly(true);
+    } finally {
+      setLoadingParalysis(false);
+    }
+  };
 
   // Launch the ReviewGame
   if (selectedChapter || showParalysisOnly) {
@@ -155,8 +204,9 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
           
           {/* Nút Các câu hay liệt */}
           <button 
-            onClick={() => setShowParalysisOnly(true)}
-            className="bg-white p-2 md:p-6 rounded-xl shadow-md hover:shadow-xl border border-gray-100 hover:border-red-200 transition-all duration-300 flex flex-col gap-4 hover:-translate-y-1 group text-left h-full"
+            onClick={handleParalysisClick}
+            disabled={loadingParalysis}
+            className={`bg-white p-2 md:p-6 rounded-xl shadow-md hover:shadow-xl border border-gray-100 hover:border-red-200 transition-all duration-300 flex flex-col gap-4 hover:-translate-y-1 group text-left h-full ${loadingParalysis ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4">
               <div className="w-10 h-10 md:w-14 md:h-14 bg-gradient-to-br from-red-50 to-red-100 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform flex-shrink-0">
@@ -164,7 +214,7 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
               </div>
               <div className="flex-1">
                 <h3 className="text-[12px] md:text-lg font-bold text-gray-900 group-hover:text-red-600 transition-colors">
-                  Các câu điểm liệt
+                  {loadingParalysis ? 'Đang tải...' : 'Các câu điểm liệt'}
                 </h3>
               </div>
             </div>
