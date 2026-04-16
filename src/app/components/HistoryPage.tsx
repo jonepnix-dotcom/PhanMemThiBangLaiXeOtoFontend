@@ -24,7 +24,7 @@ interface HistoryPageProps {
 export const HistoryPage: React.FC<HistoryPageProps> = ({ userName, onBackToHome }) => {
   const [history, setHistory] = useState<Attempt[]>([]);
   const [retryQuestions, setRetryQuestions] = useState<Question[] | null>(null);
-  const [viewAttempt, setViewAttempt] = useState<Attempt | null>(null);
+  const [retryTitle, setRetryTitle] = useState<string>('');
 
   useEffect(() => {
     try {
@@ -107,7 +107,10 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ userName, onBackToHome
         <div className="flex items-center gap-4">
           {totalIncorrect > 0 && (
             <button
-              onClick={() => setRetryQuestions(aggregateIncorrectQuestions())}
+              onClick={() => {
+                setRetryQuestions(aggregateIncorrectQuestions());
+                setRetryTitle(`Làm lại toàn bộ: ${totalIncorrect} câu sai tổng hợp`);
+              }}
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
             >
               Làm lại câu sai ({totalIncorrect})
@@ -133,7 +136,18 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ userName, onBackToHome
 
       <div className="space-y-4">
         {history.map(h => (
-          <div key={h.id} className="p-4 border rounded-lg flex items-center justify-between cursor-pointer" onClick={() => setViewAttempt(h)}>
+          <div 
+            key={h.id} 
+            className="p-4 border rounded-lg flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors" 
+            onClick={() => {
+              if (h.incorrectQuestions && h.incorrectQuestions.length > 0) {
+                setRetryQuestions(h.incorrectQuestions);
+                setRetryTitle(`Làm lại câu sai (${h.incorrectQuestions.length}): ${h.examTitle}`);
+              } else {
+                alert('Tuyệt vời! Bạn không sai câu nào trong bài thi này.');
+              }
+            }}
+          >
             <div>
               <h4 className="font-bold text-gray-800">{h.examTitle}</h4>
               <p className="text-sm text-gray-500">{new Date(h.date).toLocaleString()} • {h.correctCount}/{h.totalQuestions} • {h.isPassed ? 'Đạt' : 'Không đạt'}</p>
@@ -153,24 +167,17 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ userName, onBackToHome
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-50">
       {retryQuestions ? (
-        <div className="fixed inset-0 z-50 bg-white p-3 sm:p-6 overflow-auto">
+        <div className="fixed inset-0 z-50 bg-white sm:p-6 overflow-auto">
           <QuizGame
-            examTitle={`Làm lại: ${retryQuestions.length} câu sai`}
+            examTitle={retryTitle || `Làm lại: ${retryQuestions.length} câu sai`}
             questions={retryQuestions}
             onExit={() => setRetryQuestions(null)}
-          />
-        </div>
-      ) : null}
-
-      {viewAttempt ? (
-        <div className="fixed inset-0 z-50 bg-white p-3 sm:p-6 overflow-auto">
-          <QuizGame
-            examTitle={viewAttempt.examTitle}
-            questions={viewAttempt.questions || []}
-            initialSelectedAnswers={viewAttempt.selectedAnswers}
-            startShowResult={true}
-            readonly={true}
-            onExit={() => setViewAttempt(null)}
+            showTimer={false}
+            autoAdvance={false}
+            allowUnsure={false}
+            submitButtonText="Hoàn thành"
+            showImmediateExplanation={true}
+            resultFullPage={true}
           />
         </div>
       ) : null}

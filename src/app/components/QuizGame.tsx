@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { CheckCircle, XCircle, Clock, AlertTriangle, ArrowRight, ArrowLeft, RotateCcw, Loader2 } from 'lucide-react';
 import { Question } from '@/app/types';
 import {url} from '../../env.js'
+import apiClient from '../api/axiosClient';
 interface QuizGameProps {
   examTitle: string;
   questions: Question[];
@@ -264,6 +265,28 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
       const arr = raw ? JSON.parse(raw) : [];
       arr.unshift(attempt);
       if (typeof window !== 'undefined') window.localStorage.setItem('history', JSON.stringify(arr));
+
+      // Bắt đầu gọi API lưu kết quả xuống backend
+      try {
+        const apiTasks = usedQuestions.map(q => {
+          const selectedAns = selectedAnswers[q.id];
+          if (selectedAns === undefined) return null;
+
+          const idStr = String(q.id).replace('api-', '');
+          const numericId = parseInt(idStr, 10);
+
+          return apiClient.post('/api/hoctap/luuketqua', {
+            QuestionId: isNaN(numericId) ? 0 : numericId,
+            SelectedAnserId: selectedAns,
+            IsCorrect: selectedAns === q.correctAnswer
+          });
+        }).filter(Boolean) as Promise<any>[];
+
+        Promise.all(apiTasks).catch(err => console.error("Lỗi khi quá trình POST API luuketqua thất bại:", err));
+      } catch (e) {
+        console.error('Lỗi xử lý mảng API lưu kết quả', e);
+      }
+
     } catch (err) {
       console.error('Failed to save attempt to history', err);
     }
@@ -422,7 +445,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
                       
                       {q.imageUrl && (
                         <div className="mb-4 text-center">
-                          <img src={q.imageUrl} alt="Hình ảnh câu hỏi" className="max-h-64 object-contain inline-block border border-gray-200 rounded-lg shadow-sm" />
+                          <img src={url +'assets/uploads/'+ q.imageUrl} alt="Hình ảnh câu hỏi" className="max-h-64 object-contain inline-block border border-gray-200 rounded-lg shadow-sm" />
                         </div>
                       )}
 

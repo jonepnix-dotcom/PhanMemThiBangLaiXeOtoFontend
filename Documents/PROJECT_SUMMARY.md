@@ -136,3 +136,13 @@
   - **Nâng cấp giao diện Kết quả Ôn tập & Thi Sát Hạch:** Xóa bỏ thông báo "ĐẠT/KHÔNG ĐẠT" cứng nhắc đơn điệu cũ. Thay thế bằng giao diện thống kê thân thiện (Gradient sắc nét, Circular Progress Chart) với phần trăm hoàn thành, phân tách rõ các câu Đúng/Sai/Chưa làm.
   - **Giao diện trang tổng kết (Result Page) liền mạch:** Chuyển đổi từ Box hiển thị nhỏ lồng cuộn nội bộ (Scroll bounding box) sang chế độ toàn trang. Loại bỏ giới hạn max-height, cho phép người dùng cuộn xem từng đáp án liền mạch và mượt mà hơn trên mọi dòng thiết bị, tránh tình trạng bị chẻ layout hay kẹt nút cuộn trên màn hình nhỏ.
   - **Chi tiết đáp án trực quan:** Thiết kế lại dạng lưới (`grid-cols-2`) giúp người dùng dễ theo dõi các lựa chọn. Các đáp án được phối màu sinh động (`green-50`, `red-50`), có huy hiệu đánh dấu rõ nguyên nhân sai do câu điểm liệt và bộ khung chú thích giải thích gọn gàng bên dưới mỗi thẻ bài thi.
+  - **Sửa lỗi hiển thị hình ảnh:** Khắc phục lỗi ẩn hình ảnh của câu hỏi trong màn hình xem lại kết quả bài thi (`QuizGame.tsx`) và kết thúc ôn tập (`ReviewGame.tsx`) bằng cách đồng bộ nối nội dung đường dẫn ảnh với URL API gốc (`url + 'assets/uploads/[tên_ảnh]'`).
+  - **Lưu kết quả học tập:** Tích hợp gọi API POST (`/api/hoctap/luuketqua`) vào hệ thống để tự động lưu lại chi tiết lịch sử từng câu hỏi (bao gồm mã câu hỏi, mã lựa chọn đáp án và trạng thái đúng sai) lên server ngay khi người dùng nộp bài hoặc kết thúc vòng ôn tập.
+  - **Cải thiện màn hình Lịch sử làm lại (`HistoryPage.tsx`):**
+    - Tùy chỉnh chế độ "Làm lại câu sai" và "Xem lại bài thi" giống với chế độ Ôn tập: bỏ hoàn toàn đồng hồ đếm ngược, đổi nút "Nộp bài" thành "Hoàn thành" 
+    - Cung cấp nút "Thoát" chức năng ngay trên thanh điều hướng để người dùng có tự do thể rời khỏi màn làm lại bất kì lúc nào.
+
+---
+
+## 6. Thay đổi trên Backend (Backend Changes)
+

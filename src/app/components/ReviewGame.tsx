@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle, XCircle, ArrowRight, ArrowLeft, RotateCcw } from 'lucide-react';
 import { Question } from '@/app/types';
+import { url } from '../../env.js';
 
 interface ReviewGameProps {
   examTitle: string;
@@ -106,7 +107,7 @@ export const ReviewGame: React.FC<ReviewGameProps> = ({ examTitle, questions, on
               {currentQuestion.content}
             </h3>
             {currentQuestion.imageUrl && (
-              <img src={currentQuestion.imageUrl} alt="Question illustration" className="mt-4 rounded-xl border border-gray-200 max-h-64 object-contain" />
+              <img src={url +'assets/uploads/'+ currentQuestion.imageUrl} alt="Question illustration" className="mt-4 rounded-xl border border-gray-200 max-h-64 object-contain" />
             )}
           </div>
 
