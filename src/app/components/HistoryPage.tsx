@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { QuizGame } from './QuizGame';
 import { Question } from '@/app/types';
 import apiClient from '../api/axiosClient';
-import { Home, BookOpen, Clock, Award } from 'lucide-react';
+import { Home, BookOpen, Clock, Award, X } from 'lucide-react';
 
 interface Attempt {
   id: number;
@@ -226,6 +226,15 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ userName, onBackToHome
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-50">
       {retryQuestions ? (
         <div className="fixed inset-0 z-50 bg-white sm:p-6 overflow-auto">
+          <div className="flex justify-end mb-4">
+            <button
+              onClick={() => setRetryQuestions(null)}
+              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-100"
+            >
+              <X className="h-4 w-4" />
+              Thoát
+            </button>
+          </div>
           <QuizGame
             examTitle={retryTitle || `Làm lại: ${retryQuestions.length} câu sai`}
             questions={retryQuestions}
