@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Wrench, AlertTriangle, Map as MapIcon, Zap, Gavel, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
+import { Shield, Wrench, AlertTriangle, Map as MapIcon, Zap, Gavel, ArrowLeft, ArrowRight, AlertCircle, CheckCircle } from 'lucide-react';
 import { Question } from '@/app/types';
 import { QuizGame } from '@/app/components/QuizGame';
 import { url } from '../../env.js';
+import trafficSignService from '@/app/services/trafficSignService';
 
 const getIconForCategory = (id: number) => {
   switch (id) {
@@ -33,6 +34,38 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [attemptResult, setAttemptResult] = useState<'correct' | 'wrong' | null>(null);
   const [chapters, setChapters] = useState<any[]>([]);
+  const [showTrafficSigns, setShowTrafficSigns] = useState(false);
+  const [trafficSigns, setTrafficSigns] = useState<any[]>([]);
+  const [loadingSigns, setLoadingSigns] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(24);
+  const [totalCount, setTotalCount] = useState(0);
+  const paginationRange = React.useMemo(() => {
+    const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+    const range: Array<number | string> = [];
+    const delta = 2;
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
+        range.push(i);
+      } else if (i === currentPage - delta - 1 || i === currentPage + delta + 1) {
+        range.push('...');
+      }
+    }
+    return Array.from(new Set(range));
+  }, [totalCount, currentPage, pageSize]);
+  const resolveSignImage = (img?: string | null) => {
+    if (!img) return null;
+    const trimUrl = (u: string) => u.endsWith('/') ? u.slice(0, -1) : u;
+    if (/^https?:\/\//i.test(img)) return img;
+    const base = trimUrl(url);
+    if (img.startsWith('/')) {
+      return base + img;
+    }
+    if (img.startsWith('assets/') || img.startsWith('uploads/')) {
+      return base + '/' + img;
+    }
+    return base + '/assets/uploads/' + img;
+  };
 
   // Fetch chuong data directly component load
   useEffect(() => {
@@ -140,7 +173,168 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
   };
 
   // Launch the ReviewGame
-  if (selectedChapter || showParalysisOnly) {
+  // Fetch traffic signs from server when the traffic view is opened or paging changes
+  useEffect(() => {
+    let cancelled = false;
+    const fetchSigns = async () => {
+      if (!showTrafficSigns) return;
+      setLoadingSigns(true);
+      try {
+        const result = await trafficSignService.getPaged(currentPage, pageSize);
+        if (!cancelled) {
+          let items = result.items || [];
+          let total = typeof result.total === 'number' ? result.total : items.length;
+
+          // Nếu server trả về toàn bộ danh sách (không phân trang) => result.total === items.length
+          // Trong trường hợp đó, ta cắt (slice) client-side để hiển thị đúng trang hiện tại.
+          if (total === items.length && items.length > pageSize) {
+            const start = (currentPage - 1) * pageSize;
+            items = items.slice(start, start + pageSize);
+            // total giữ nguyên là tổng phần tử để pagination vẫn hiển thị chính xác
+          }
+
+          setTrafficSigns(items);
+          setTotalCount(total);
+        }
+      } catch (err) {
+        console.error('Failed to load traffic signs', err);
+        if (!cancelled) {
+          setTrafficSigns([]);
+          setTotalCount(0);
+        }
+      } finally {
+        if (!cancelled) setLoadingSigns(false);
+      }
+    };
+
+    fetchSigns();
+    return () => { cancelled = true; };
+  }, [showTrafficSigns, currentPage, pageSize]);
+
+  if (selectedChapter || showParalysisOnly || showTrafficSigns) {
+    // Special view for traffic signs (admin-like layout)
+    if (showTrafficSigns) {
+      const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+      const startItem = totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+      const endItem = Math.min(totalCount, currentPage * pageSize);
+      return (
+        <div className="max-w-[1400px] mx-auto p-6">
+          <div className="flex items-center justify-end mb-4">
+            <button
+              onClick={() => setShowTrafficSigns(false)}
+              className="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="font-semibold">Quay lại</span>
+            </button>
+          </div>
+
+          <div className="px-5 py-4 bg-white rounded-xl mb-6 flex items-center justify-between shadow-2xl border border-slate-100 z-40">
+            <div>
+              <div className="inline-flex items-center gap-3">
+                <div className="text-sm text-slate-900 font-extrabold bg-indigo-50 text-indigo-700 px-3 py-1 rounded-md shadow-sm">Tổng cộng: {totalCount} mục</div>
+              </div>
+              <div className="text-xs text-slate-500 mt-1">Hiển thị {startItem}-{endItem} trên {totalCount}</div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <select
+                value={pageSize}
+                onChange={(e) => { setPageSize(Number((e.target as HTMLSelectElement).value)); setCurrentPage(1); }}
+                className="border rounded px-3 py-2 text-sm bg-white shadow-sm"
+              >
+                <option value={8}>8</option>
+                <option value={12}>12</option>
+                <option value={24}>24</option>
+              </select>
+
+              <div className="flex items-center gap-2 bg-white p-3 rounded-3xl border border-slate-200 shadow-lg">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(1)}
+                  className="flex items-center justify-center p-3 hover:bg-slate-100 rounded-lg disabled:opacity-40 text-slate-500 transition-all"
+                >
+                  {'<<'}
+                </button>
+
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  className="p-3 hover:bg-slate-100 rounded-lg disabled:opacity-40 text-slate-500 transition-all"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </button>
+
+                <div className="flex items-center mx-1">
+                  {paginationRange.map((page, idx) => (
+                    <React.Fragment key={idx}>
+                      {page === '...' ? (
+                        <span className="w-10 text-center text-slate-300 font-bold select-none">...</span>
+                      ) : (
+                        <button
+                          onClick={() => setCurrentPage(Number(page))}
+                          className={`min-w-[40px] h-10 mx-1 rounded-full text-sm font-semibold transition-all ${currentPage === page ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white border border-transparent hover:border-indigo-100 text-slate-600'}`}
+                        >
+                          {page}
+                        </button>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </div>
+
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  className="p-3 hover:bg-slate-100 rounded-lg disabled:opacity-40 text-slate-500 transition-all"
+                >
+                  <ArrowRight className="h-5 w-5" />
+                </button>
+
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(totalPages)}
+                  className="flex items-center justify-center p-3 hover:bg-slate-100 rounded-lg disabled:opacity-40 text-slate-500 transition-all"
+                >
+                  {'>>'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <main>
+            {loadingSigns ? (
+              <div>Đang tải...</div>
+            ) : trafficSigns.length === 0 ? (
+              <div className="text-center py-16 bg-white rounded-[2rem] border-2 border-dashed border-slate-200">
+                Không có biển báo.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-in fade-in duration-500">
+                {trafficSigns.map((sign) => (
+                  <div key={sign.id} className="group bg-white rounded-[2rem] border border-slate-200 overflow-hidden hover:shadow-2xl hover:shadow-indigo-100/50 transition-all duration-300">
+                    <div className="aspect-square bg-slate-50 relative flex items-center justify-center p-8">
+                      {resolveSignImage(sign.imageUrl) ? (
+                        <img
+                          src={resolveSignImage(sign.imageUrl) as string}
+                          alt={sign.name}
+                          className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500"
+                        />
+                      ) : null}
+                    </div>
+                    <div className="p-6">
+                      <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-2 block">{sign.categoryName}</span>
+                      <h3 className="font-bold text-slate-800 uppercase text-sm line-clamp-1 mb-1">{sign.name}</h3>
+                      <p className="text-[11px] text-slate-400 line-clamp-2 h-8 leading-relaxed">{sign.description || 'Không có mô tả'}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </main>
+        </div>
+      );
+    }
+
     const title = showParalysisOnly ? 'Các câu điểm liệt' : (selectedChapter ? `${selectedChapter.title}: ${selectedChapter.topic}` : 'Ôn tập');
     return (
       <QuizGame
@@ -229,6 +423,37 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
                 Ôn tập hiệu quả
               </span>
               <ArrowLeft className="w-5 h-5 text-gray-400 group-hover:text-red-600 rotate-180 transition-all" />
+            </div>
+          </button>
+
+          {/* Nút Biển báo */}
+          <button
+            onClick={() => {
+              setCurrentPage(1);
+              setShowTrafficSigns(true);
+            }}
+            className="bg-white p-2 md:p-6 rounded-xl shadow-md hover:shadow-xl border border-gray-100 hover:border-green-200 transition-all duration-300 flex flex-col gap-4 hover:-translate-y-1 group text-left h-full"
+          >
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4">
+              <div className="w-10 h-10 md:w-14 md:h-14 bg-gradient-to-br from-green-50 to-green-100 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform flex-shrink-0">
+                <MapIcon size={32} className="text-green-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-[12px] md:text-lg font-bold text-gray-900 group-hover:text-green-600 transition-colors">
+                  Biển báo
+                </h3>
+              </div>
+            </div>
+
+            <p className="text-gray-700 text-[10px] md:text-sm leading-relaxed flex-1">
+              Ôn tập nhận biết các loại biển báo giao thông
+            </p>
+
+            <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-2">
+              <span className="text-xs text-green-600 font-medium bg-green-50 px-2 py-1 rounded">
+                Xem biển báo
+              </span>
+              <ArrowLeft className="w-5 h-5 text-gray-400 group-hover:text-green-600 rotate-180 transition-all" />
             </div>
           </button>
         </div>

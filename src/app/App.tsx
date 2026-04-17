@@ -50,7 +50,25 @@ const App = () => {
   // State quản lý đăng nhập
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState<'USER' | 'ADMIN' | null>(null);
-  const [showAuthPage, setShowAuthPage] = useState(false);
+  // When admin/protected route requests login, it will redirect to /?showAuth=1&redirect=/admin...
+  const [postLoginRedirect, setPostLoginRedirect] = useState<string | null>(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('redirect');
+    } catch (e) {
+      return null;
+    }
+  });
+
+  const [showAuthPage, setShowAuthPage] = useState<boolean>(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('showAuth') === '1' || !!params.get('redirect');
+    } catch (e) {
+      return false;
+    }
+  });
+
   const [userData, setUserData] = useState<{ name: string; email: string }>({
     name: 'Khách',
     email: ''
@@ -152,6 +170,19 @@ const App = () => {
     };
 
     init();
+  }, []);
+
+  // Clean URL query params used for redirecting to the AuthPage so URL looks tidy after opening login
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('showAuth') || params.has('redirect')) {
+        const newUrl = window.location.pathname + window.location.hash;
+        window.history.replaceState(null, '', newUrl);
+      }
+    } catch (e) {
+      // ignore
+    }
   }, []);
   // Persist questions to localStorage whenever they change
   useEffect(() => {
@@ -386,6 +417,27 @@ const App = () => {
       localStorage.setItem('userRole', validUser.role);
     } catch (e) { }
     setShowAuthPage(false);
+
+    // If a redirect was requested (e.g. /admin), navigate there after successful login.
+    if (postLoginRedirect) {
+      const redirect = postLoginRedirect;
+      setPostLoginRedirect(null);
+      try {
+        // Only allow admin redirect if the logged-in user has ADMIN role
+        if (redirect.startsWith('/admin')) {
+          if (validUser.role === 'ADMIN') {
+            window.location.href = redirect;
+            return;
+          }
+          // If not ADMIN, ignore the admin redirect and continue
+        } else {
+          window.location.href = redirect;
+          return;
+        }
+      } catch (e) {
+        // ignore navigation errors
+      }
+    }
   };
 
   // Hàm hiển thị trang đăng nhập

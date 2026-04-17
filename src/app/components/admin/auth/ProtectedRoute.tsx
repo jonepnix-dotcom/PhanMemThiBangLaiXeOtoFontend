@@ -9,7 +9,12 @@ const ProtectedRoute: React.FC = () => {
 
   useEffect(() => {
     if (!isAuth || !isAdmin) {
-      window.location.href = '/';
+      try {
+        const redirectPath = encodeURIComponent(window.location.pathname + window.location.search);
+        window.location.href = `/?showAuth=1&redirect=${redirectPath}`;
+      } catch (e) {
+        window.location.href = '/';
+      }
     }
   }, [isAuth, isAdmin]);
 

@@ -20,6 +20,39 @@ const trafficSignService = {
     return response.data;
   },
 
+  // Server-side pagination: attempt to call API with Vietnamese params 'trang' and 'SoLuong'.
+  // Parses responses that are either a plain array or an object containing items/data and total count.
+  getPaged: async (page = 1, pageSize = 24, categoryId?: number): Promise<{ items: TrafficSignDTO[]; total: number }> => {
+    const params: any = { trang: page, SoLuong: pageSize };
+    if (typeof categoryId === 'number') params.categoryId = categoryId;
+    const response = await apiClient.get('/BienBao', { params });
+    const data = response.data;
+
+    // If API returns an array directly
+    if (Array.isArray(data)) {
+      return { items: data as TrafficSignDTO[], total: data.length };
+    }
+
+    // Try common shapes: { items: [], total: N } or { data: [], total: N } or { results: [], totalCount: N }
+    const items: TrafficSignDTO[] = Array.isArray(data.items)
+      ? data.items
+      : Array.isArray(data.data)
+      ? data.data
+      : Array.isArray(data.results)
+      ? data.results
+      : [];
+
+    const total: number = typeof data.total === 'number'
+      ? data.total
+      : typeof data.totalItems === 'number'
+      ? data.totalItems
+      : typeof data.totalCount === 'number'
+      ? data.totalCount
+      : items.length;
+
+    return { items, total };
+  },
+
   // THÊM: Gọi API lấy danh mục động
   getCategories: async (): Promise<CategoryDTO[]> => {
     const response = await apiClient.get<CategoryDTO[]>('/chuong?phanloai=bienbao');
