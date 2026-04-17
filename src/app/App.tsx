@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Cookies from 'js-cookie';
 import { Home, FileText, Facebook, Twitter, Instagram, Mail, LogIn, User as UserIcon, LogOut, CheckSquare, Book, Shield, Info, Menu, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import logoImage from '@/assets/logo.png';
@@ -118,10 +119,10 @@ const App = () => {
   useEffect(() => {
     const init = async () => {
       try {
-        const token = localStorage.getItem('accessToken');
-        const role = localStorage.getItem('userRole');
-        let storedName = localStorage.getItem('userName');
-        let storedEmail = localStorage.getItem('userEmail');
+  const token = Cookies.get('accessToken') || localStorage.getItem('accessToken');
+  const role = Cookies.get('userRole') || localStorage.getItem('userRole');
+  let storedName = Cookies.get('userName') || localStorage.getItem('userName');
+  let storedEmail = Cookies.get('userEmail') || localStorage.getItem('userEmail');
 
         if (storedName === 'undefined') storedName = null;
         if (storedEmail === 'undefined') storedEmail = null;
@@ -464,7 +465,16 @@ const App = () => {
   // Clean auth + UI
   setIsAuthenticated(false);
   setUserRole(null);
-  localStorage.clear();                 // hoặc remove từng item như cũ
+  Cookies.remove('accessToken', { path: '/' });
+  Cookies.remove('userRole', { path: '/' });
+  Cookies.remove('userId', { path: '/' });
+  Cookies.remove('userName', { path: '/' });
+  Cookies.remove('userEmail', { path: '/' });
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('userRole');
+  localStorage.removeItem('userId');
+  localStorage.removeItem('userName');
+  localStorage.removeItem('userEmail');
   setUserData({ name: "Khách", email: "" });
   setCurrentPage("HOME");
   setShowAuthPage(true);

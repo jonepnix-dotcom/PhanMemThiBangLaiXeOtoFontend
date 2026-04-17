@@ -1,6 +1,5 @@
 import React, { useState, useEffect, DragEvent, useRef } from 'react';
-import axios from 'axios';
-import { url } from '../../../../env.js';
+import apiClient from '../../../api/axiosClient';
 import {
   XMarkIcon, PlusIcon, TrashIcon, PhotoIcon,
   TagIcon, CheckCircleIcon, ExclamationTriangleIcon
@@ -81,7 +80,7 @@ export const QuestionFormModal: React.FC<{ data: Question | null, onClose: () =>
 
   useEffect(() => {
     // Fetch danh sách chương
-    axios.get(`${url}api/chuong`)
+    apiClient.get('/chuong')
       .then(res => setAllCategories(res.data))
       .catch(err => console.error(err));
   }, []);

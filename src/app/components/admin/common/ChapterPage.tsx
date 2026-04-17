@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { url } from '../../../../env.js';
+import apiClient from '../../../api/axiosClient';
 import {
   PlusIcon, PencilSquareIcon, TrashIcon,
   MagnifyingGlassIcon, XMarkIcon, ExclamationCircleIcon, CheckCircleIcon,
@@ -70,7 +69,7 @@ const ChapterPage: React.FC = () => {
   const fetchChapters = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${url}api/chuong`);
+      const res = await apiClient.get('/chuong');
       setChapters(res.data);
     } catch (err) {
       console.error('Lỗi khi lấy danh sách chương:', err);
@@ -138,14 +137,14 @@ const ChapterPage: React.FC = () => {
     try {
       if (editingId) {
         // Cập nhật
-        await axios.put(`${url}api/chuong/${editingId}`, {
+        await apiClient.put(`/chuong/${editingId}`, {
           categoryId: editingId,
           categoryName: formData.categoryName
         });
         setToast({ msg: "Cập nhật chương thành công!", type: 'success' });
       } else {
         // Tạo mới
-        await axios.post(`${url}api/chuong`, {
+        await apiClient.post('/chuong', {
           categoryName: formData.categoryName
         });
         setToast({ msg: "Thêm mới chương thành công!", type: 'success' });
@@ -161,7 +160,7 @@ const ChapterPage: React.FC = () => {
   const handleDelete = async (id: number, name: string) => {
     if (window.confirm(`Bạn có chắc chắn muốn xóa chương "${name}" không?`)) {
       try {
-        await axios.delete(`${url}api/chuong/${id}`);
+  await apiClient.delete(`/chuong/${id}`);
         setToast({ msg: "Đã xóa chương thành công!", type: 'success' });
         fetchChapters();
       } catch (err) {

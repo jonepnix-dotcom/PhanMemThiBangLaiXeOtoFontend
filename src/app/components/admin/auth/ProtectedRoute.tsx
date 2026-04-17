@@ -1,11 +1,12 @@
 import React, { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
+import Cookies from 'js-cookie';
 import { AuthService } from '../../../services/authService';
 
 const ProtectedRoute: React.FC = () => {
   // Kiểm tra cả token và role ADMIN
   const isAuth = AuthService.isAuthenticated();
-  const isAdmin = localStorage.getItem('userRole') === 'ADMIN';
+  const isAdmin = Cookies.get('userRole') === 'ADMIN' || localStorage.getItem('userRole') === 'ADMIN';
 
   useEffect(() => {
     if (!isAuth || !isAdmin) {

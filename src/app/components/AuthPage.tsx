@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { LogIn, UserPlus, Mail, Lock, User, Eye, EyeOff, ArrowRight, AlertCircle, ArrowLeft } from 'lucide-react';
+import { LogIn, UserPlus, Lock, User, Eye, EyeOff, ArrowRight, AlertCircle, ArrowLeft } from 'lucide-react';
 import logoImage from '@/assets/logo.png';
-import {url} from '../../env.js'
+import { AuthService } from '../services/authService';
 
 interface AuthPageProps {
   onLogin: (userData: { 
@@ -27,7 +27,7 @@ export const AuthPage = ({ onLogin, onNavigateToPrivacy, onBack }: AuthPageProps
     confirmPassword: ''
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     setSuccessMsg(null);
@@ -46,59 +46,25 @@ export const AuthPage = ({ onLogin, onNavigateToPrivacy, onBack }: AuthPageProps
 
     try {
       if (isLogin) {
-        // Đăng nhập qua API
-        const response = await fetch(url + 'auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            username: formData.name,
-            password: formData.password
-          })
+        const data = await AuthService.login({
+          username: formData.name,
+          password: formData.password
         });
 
-        if (!response.ok) {
-          throw new Error('Đăng nhập thất bại. Kiểm tra lại thông tin.');
-        }
-
-        const data = await response.json();
-        
-        if (data.accessToken) {
-          // Lưu token vào localStorage
-          localStorage.setItem('accessToken', data.accessToken);
-          localStorage.setItem('userRole', data.role === 1 ? 'ADMIN' : 'USER');
-          localStorage.setItem('userId', data.userId);
-          
-          onLogin({
-            name: data.name || data.username || formData.name || 'Người dùng',
-            email: data.email ?? formData.email,
-            role: data.role === 1 ? 'ADMIN' : 'USER'
-          });
-        } else {
-          throw new Error('Không nhận được token từ server');
-        }
+        onLogin({
+          name: data.name || data.username || formData.name || 'Người dùng',
+          email: data.email ?? formData.email,
+          role: data.role === 1 ? 'ADMIN' : 'USER'
+        });
       } else {
         if (formData.password !== formData.confirmPassword) {
           throw new Error('Mật khẩu xác nhận không khớp.');
         }
 
-        // Đăng ký qua API
-        const response = await fetch(url + 'auth/register', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            username: formData.name,
-            password: formData.password
-          })
+        await AuthService.register({
+          username: formData.name,
+          password: formData.password
         });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.message || 'Đăng ký thất bại. Vui lòng thử lại.');
-        }
 
         // Đăng ký thành công, thông báo rồi chuyển tab đăng nhập
         setSuccessMsg('Đăng ký thành công! Vui lòng đăng nhập để tiếp tục.');
@@ -177,7 +143,7 @@ export const AuthPage = ({ onLogin, onNavigateToPrivacy, onBack }: AuthPageProps
         <div className="absolute top-3 sm:p-6 left-6 md:top-8 md:left-8 z-10">
           <button
             type="button"
-            onClick={() => onBack ? onBack() : window.history.back()}
+            onClick={() => onBack ? onBack() : globalThis.history.back()}
             className="flex items-center gap-2 px-4 py-2 text-gray-500 hover:text-blue-700 bg-white hover:bg-blue-50 rounded-full shadow-sm border border-gray-100 transition-all duration-300 group"
           >
             <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
@@ -257,7 +223,7 @@ export const AuthPage = ({ onLogin, onNavigateToPrivacy, onBack }: AuthPageProps
                   setSuccessMsg(null);
                 }}
                 className={`flex-1 py-2.5 px-4 rounded-lg font-semibold transition-all duration-300 ${
-                  !isLogin
+                  isLogin === false
                     ? 'bg-white text-blue-700 shadow-sm'
                     : 'text-gray-500 hover:text-blue-600'
                 }`}
@@ -352,17 +318,18 @@ export const AuthPage = ({ onLogin, onNavigateToPrivacy, onBack }: AuthPageProps
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full bg-blue-700 hover:bg-blue-800 text-white py-3.5 px-4 rounded-xl font-bold shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 mt-2"
+                disabled={isLoading}
+                className={`w-full ${isLoading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-700 hover:bg-blue-800'} text-white py-3.5 px-4 rounded-xl font-bold shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 mt-2 ${isLoading ? 'hover:shadow-none hover:translate-y-0' : ''}`}
               >
-                {isLogin ? (
+                {isLogin === true ? (
                   <>
                     <LogIn size={20} />
-                    <span>Đăng nhập ngay</span>
+                    <span>{isLoading ? 'Đang đăng nhập...' : 'Đăng nhập ngay'}</span>
                   </>
                 ) : (
                   <>
                     <UserPlus size={20} />
-                    <span>Tạo tài khoản</span>
+                    <span>{isLoading ? 'Đang tạo tài khoản...' : 'Tạo tài khoản'}</span>
                   </>
                 )}
               </button>
@@ -372,7 +339,7 @@ export const AuthPage = ({ onLogin, onNavigateToPrivacy, onBack }: AuthPageProps
 
             {/* Additional Info */}
             <div className="mt-8 text-center text-sm text-gray-600">
-              {isLogin ? (
+              {isLogin === true ? (
                 <p>
                   Chưa có tài khoản?{' '}
                   <button
@@ -400,7 +367,13 @@ export const AuthPage = ({ onLogin, onNavigateToPrivacy, onBack }: AuthPageProps
         {/* Footer Note */}
         <div className="w-full text-center text-xs text-gray-500 py-6 mt-auto">
           Bằng việc đăng nhập, bạn đồng ý với{' '}
-          <a href="#" className="font-medium text-gray-700 hover:text-blue-700 transition-colors">Điều khoản sử dụng</a>
+          <button
+            type="button"
+            onClick={(e) => e.preventDefault()}
+            className="font-medium text-gray-700 hover:text-blue-700 transition-colors"
+          >
+            Điều khoản sử dụng
+          </button>
           {' '}và{' '}
           <button 
             type="button"

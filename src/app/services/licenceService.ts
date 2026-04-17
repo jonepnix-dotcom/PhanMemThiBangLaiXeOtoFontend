@@ -1,5 +1,6 @@
 // 1. Import apiClient đã có sẵn Interceptor
 import apiClient from '../api/axiosClient';
+import { AuthService } from './authService';
 import { CategoryDto, LicenceDto } from '../admin-types/licence.type';
 
 export const LicenceService = {
@@ -24,7 +25,10 @@ export const LicenceService = {
    * TẠO MỚI VĂN BẰNG
    */
   createLicence: async (data: LicenceDto): Promise<any> => {
-    const response = await apiClient.post('/vanbang', data);
+    const token = AuthService.getToken();
+    const response = await apiClient.post('/vanbang', data, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
     return response.data;
   },
 
@@ -32,7 +36,10 @@ export const LicenceService = {
    * CẬP NHẬT VĂN BẰNG
    */
   updateLicence: async (id: number, data: LicenceDto): Promise<any> => {
-    const response = await apiClient.put(`/vanbang/${id}`, data);
+    const token = AuthService.getToken();
+    const response = await apiClient.put(`/vanbang/${id}`, data, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
     return response.data;
   },
 
@@ -40,7 +47,10 @@ export const LicenceService = {
    * XÓA VĂN BẰNG
    */
   deleteLicence: async (id: number): Promise<any> => {
-    const response = await apiClient.delete(`/vanbang/${id}`);
+    const token = AuthService.getToken();
+    const response = await apiClient.delete(`/vanbang/${id}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
     return response.data;
   },
 

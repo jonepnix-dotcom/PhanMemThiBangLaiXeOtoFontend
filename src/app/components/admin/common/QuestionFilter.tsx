@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { url } from '../../../../env.js';
+import apiClient from '../../../api/axiosClient';
 import { QuestionFilter as IFilter, Category } from '../../../admin-types/question.types';
 import { FunnelIcon } from '@heroicons/react/24/outline';
 
@@ -18,7 +17,7 @@ export const QuestionFilterComponent: React.FC<QuestionFilterProps> = ({
 
   useEffect(() => {
     // Fetch list of chapters/categories
-    axios.get(`${url}api/chuong`)
+    apiClient.get('/chuong')
       .then(res => setCategories(res.data))
       .catch(err => console.error("Filter: Failed to fetch categories:", err));
   }, []);

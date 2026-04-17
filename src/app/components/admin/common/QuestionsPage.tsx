@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
-import { url } from '../../../../env.js';
+import apiClient from '../../../api/axiosClient';
 import {
   PlusIcon, PencilSquareIcon, TrashIcon, MagnifyingGlassIcon, XMarkIcon, ExclamationCircleIcon, PhotoIcon, CheckCircleIcon, InboxIcon, ArrowPathIcon, HashtagIcon, ArrowRightOnRectangleIcon
 } from '@heroicons/react/24/outline';
@@ -24,7 +23,7 @@ const QuestionsPage: React.FC = () => {
 
   const fetchCategories = async () => {
     try {
-      const res = await axios.get(`${url}api/chuong`);
+      const res = await apiClient.get('/chuong');
       setCategories(res.data);
     } catch (err) {
       console.error("Lỗi lấy danh sách chương:", err);

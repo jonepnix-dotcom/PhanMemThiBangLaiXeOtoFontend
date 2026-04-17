@@ -6,6 +6,7 @@ import { PlusIcon, TrashIcon, PencilSquareIcon, ArrowLeftIcon,
   InboxIcon, BeakerIcon, DocumentTextIcon
 } from '@heroicons/react/24/outline';
 import { url } from '../../../../env.js';
+import apiClient from '../../../api/axiosClient';
 
 const LicenceCardSkeleton = () => (
   <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-100 animate-pulse">
@@ -88,14 +89,14 @@ const LicenceManagement: React.FC = () => {
       setLoading(true);
       
       // Lấy tổng số lượng câu hỏi hiện tại trong ngân hàng
-      fetch(`${url}api/CauHoi?SoLuong=1`)
-        .then(res => res.json())
-        .then(data => {
-            if (data && data.questionCount !== undefined) {
-                setTotalQuestions(data.questionCount);
-            }
-        })
-        .catch(err => console.error("Error fetching total questions:", err));
+    apiClient.get('/CauHoi', { params: { SoLuong: 1 } })
+    .then(res => {
+      const data = res.data;
+      if (data && data.questionCount !== undefined) {
+        setTotalQuestions(data.questionCount);
+      }
+    })
+    .catch(err => console.error("Error fetching total questions:", err));
 
       const [resVB, resC] = await Promise.all([
         LicenceService.getAllLicences(),
@@ -123,7 +124,11 @@ const LicenceManagement: React.FC = () => {
         triggerToast("Tạo mới thành công!", "success");
       }
       setIsEditing(false); loadData();
-    } catch (err) { triggerToast("Lỗi lưu dữ liệu!", "error"); }
+    } catch (err: any) {
+      const message = err?.response?.data?.message || err?.message || 'Lỗi lưu dữ liệu!';
+      triggerToast(message, 'error');
+      console.error('Licence save failed', err);
+    }
   };
 
   const handleQuestionCountChange = (val: number) => {
