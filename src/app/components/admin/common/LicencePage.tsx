@@ -69,15 +69,18 @@ const LicenceManagement: React.FC = () => {
 
   const sanitizeData = (data: any) => {
     if (!data) return data;
+  const rawId = data.licenceId ?? data.LicenceId ?? data.id ?? data.Id ?? data.licenseId ?? data.LicenseId;
+  const normalizedId = rawId !== undefined && rawId !== null ? Number(rawId) : undefined;
     return {
       ...data,
-      licenceId: data.licenceId || data.LicenceId,
+      licenceId: normalizedId,
+      id: normalizedId,
       licenceCode: data.licenceCode || data.LicenceCode || '',
       duration: Number(data.duration || data.Duration || 0),
       passScore: Number(data.passScore || data.PassScore || 0),
-      QuestionCount: Number(data.QuestionCount || data.questionCount || 0),
+      QuestionCount: Number(data.totalQuestion || data.QuestionCount || data.questionCount || 0),
       licenceRule: (data.licenceRule || data.licenceRules || []).map((r: any) => ({
-        categoryId: Number(r.categoryId || r.CategoryId || 0),
+        categoryId: Number(r.categoryId || r.CategoryId || r.categoryID || r.CategoryID || 0),
         categoryName: r.categoryName || r.CategoryName || '',
         questionCount: Number(r.questionCount || r.QuestionCount || 0)
       }))
@@ -102,9 +105,8 @@ const LicenceManagement: React.FC = () => {
         LicenceService.getAllLicences(),
         LicenceService.getCategories()
       ]);
-      setLicences((resVB || []).map((l: any) => sanitizeData(l)));
-      // Bổ sung thêm chương giả cho 'Câu điểm liệt' (categoryId 0) vào đầu mảng
-      setCategories([{ categoryId: 0, categoryName: '🚨 CÂU HỎI ĐIỂM LIỆT' }, ...(resC || [])]);
+  setLicences((resVB || []).map((l: any) => sanitizeData(l)));
+  setCategories(resC || []);
     } catch (err) {
       triggerToast("Lỗi tải dữ liệu!", "error");
     } finally {
@@ -115,9 +117,24 @@ const LicenceManagement: React.FC = () => {
   const handleSave = async () => {
     if (!isPerfect) return;
     try {
-      const payload = { ...formData, questionCount: Number(formData.QuestionCount) };
-      if (formData.licenceId) {
-        await LicenceService.updateLicence(formData.licenceId, payload);
+      const payload = {
+        licenceCode: formData.licenceCode,
+        duration: Number(formData.duration),
+        passScore: Number(formData.passScore),
+        totalQuestion: Number(formData.QuestionCount),
+        questionCount: Number(formData.QuestionCount),
+        licenceRule: (formData.licenceRule || []).map((rule: any) => ({
+          categoryId: Number(rule.categoryId),
+          questionCount: Number(rule.questionCount)
+        }))
+      } as any;
+      const editId = formData.licenceId ?? formData.id ?? formData.LicenceId ?? formData.Id ?? formData.licenseId ?? formData.LicenseId;
+      if (editId !== undefined && editId !== null) {
+        payload.licenceId = Number(editId);
+        payload.id = Number(editId);
+      }
+      if (editId !== undefined && editId !== null) {
+        await LicenceService.updateLicence(Number(editId), payload);
         triggerToast("Cập nhật thành công!", "success");
       } else {
         await LicenceService.createLicence(payload);
@@ -216,7 +233,7 @@ const LicenceManagement: React.FC = () => {
                   licences
                     .filter(l => l.licenceCode.toUpperCase().includes(searchTerm.toUpperCase()))
                     .map((l, idx) => (
-                      <div key={l.licenceId || idx} className="group bg-white rounded-[2.5rem] p-1 border border-indigo-50 shadow-sm hover:shadow-2xl hover:shadow-indigo-100 transition-all duration-500 relative overflow-hidden">
+                      <div key={l.licenceId || l.id || idx} className="group bg-white rounded-[2.5rem] p-1 border border-indigo-50 shadow-sm hover:shadow-2xl hover:shadow-indigo-100 transition-all duration-500 relative overflow-hidden">
                         <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-indigo-500 via-blue-500 to-cyan-500 opacity-80" />
 
                         <div className="p-8">
@@ -232,7 +249,12 @@ const LicenceManagement: React.FC = () => {
 
                             <div className="flex gap-2 translate-x-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
                               <button onClick={() => { setFormData(sanitizeData(l)); setIsEditing(true); }} className="p-2.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl transition-all shadow-sm border border-indigo-100"><PencilSquareIcon className="h-5 w-5" /></button>
-                              <button onClick={() => { if (window.confirm("Xóa văn bằng này?")) LicenceService.deleteLicence(l.licenceId).then(loadData) }} className="p-2.5 bg-red-50 text-red-700 hover:bg-red-700 hover:text-white rounded-xl transition-all shadow-sm border border-red-100"><TrashIcon className="h-5 w-5" /></button>
+                              <button onClick={() => {
+                                const deleteId = l.licenceId ?? l.id ?? l.LicenceId ?? l.Id ?? l.licenseId ?? l.LicenseId;
+                                if (window.confirm("Xóa văn bằng này?") && deleteId !== undefined && deleteId !== null) {
+                                  LicenceService.deleteLicence(Number(deleteId)).then(loadData);
+                                }
+                              }} className="p-2.5 bg-red-50 text-red-700 hover:bg-red-700 hover:text-white rounded-xl transition-all shadow-sm border border-red-100"><TrashIcon className="h-5 w-5" /></button>
                             </div>
                           </div>
 

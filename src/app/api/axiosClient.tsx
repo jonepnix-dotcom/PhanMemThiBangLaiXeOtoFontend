@@ -2,51 +2,34 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 import { url } from '../../env.js';
 
+// Đảm bảo baseURL luôn đúng cấu trúc https://domain.com/api
+const cleanUrl = url.endsWith('/') ? url : `${url}/`;
+
 const apiClient = axios.create({
-  baseURL: url + 'api',
+  baseURL: `${cleanUrl}api`,
 });
 
-// T? d?ng d�n Token v�o Header
 apiClient.interceptors.request.use(
   (config) => {
-    // L?y token t? Cookies ho?c localStorage gi?ng c�ch x? l� c?a Consultation
     const token = Cookies.get('accessToken') || localStorage.getItem('accessToken');
-    const headers: any = config.headers || {};
     if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
-    config.headers = headers;
-  const isDev = (import.meta as any)?.env?.DEV;
-    if (isDev) {
-      console.debug('[apiClient] request', config.method, config.url, {
-        hasToken: !!token,
-        authHeader: headers.Authorization ? `${headers.Authorization.slice(0, 7)}...` : null,
-        cookieToken: Cookies.get('accessToken')
-      });
+      // replace(/^"(.*)"$/, '$1') để phòng trường hợp token bị dính dấu ngoặc kép khi lưu
+      const cleanToken = token.replace(/^"(.*)"$/, '$1');
+      config.headers.Authorization = `Bearer ${cleanToken.trim()}`;
     }
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// X? l� l?i 401 (H?t h?n ho?c chua dang nh?p), ho?c 403 (C?m quy?n)
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    const status = error.response?.status;
-    if (status === 401) {
+    // Chỉ logout nếu thực sự là lỗi xác thực từ server
+    if (error.response?.status === 401) {
+      localStorage.clear(); // Xóa sạch cho chắc
       Cookies.remove('accessToken', { path: '/' });
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('userRole');
-      localStorage.removeItem('userId');
-      localStorage.removeItem('userName');
-      localStorage.removeItem('userEmail');
-      globalThis.location.href = '/';
-    } else if (status === 403) {
-      console.warn('[apiClient] Forbidden request, user remains on page', error.config?.url);
-      if ((import.meta as any)?.env?.DEV) {
-        console.warn('[apiClient] response body', error.response?.data);
-      }
+      window.location.href = '/login';
     }
     return Promise.reject(error);
   }

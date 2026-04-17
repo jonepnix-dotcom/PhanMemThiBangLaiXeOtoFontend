@@ -224,7 +224,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Check for unanswered questions
     const answeredCount = Object.keys(selectedAnswers).length;
     if (answeredCount < totalQuestions) {
@@ -261,30 +261,28 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
         selectedAnswers,
       } as any;
 
-      const raw = typeof window !== 'undefined' ? window.localStorage.getItem('history') : null;
-      const arr = raw ? JSON.parse(raw) : [];
-      arr.unshift(attempt);
-      if (typeof window !== 'undefined') window.localStorage.setItem('history', JSON.stringify(arr));
-
-      // Bắt đầu gọi API lưu kết quả xuống backend
+      // Bắt đầu gọi API lưu kết quả xuống backend trên endpoint duy nhất
       try {
-        const apiTasks = usedQuestions.map(q => {
-          const selectedAns = selectedAnswers[q.id];
-          if (selectedAns === undefined) return null;
-
-          const idStr = String(q.id).replace('api-', '');
+        const answers = Object.entries(selectedAnswers).map(([questionId, answerId]) => {
+          const idStr = String(questionId).replace('api-', '');
           const numericId = parseInt(idStr, 10);
+          return {
+            questionId: isNaN(numericId) ? 0 : numericId,
+            answerId
+          };
+        }).filter(item => item.questionId > 0);
 
-          return apiClient.post('/api/hoctap/luuketqua', {
-            QuestionId: isNaN(numericId) ? 0 : numericId,
-            SelectedAnserId: selectedAns,
-            IsCorrect: selectedAns === q.correctAnswer
-          });
-        }).filter(Boolean) as Promise<any>[];
-
-        Promise.all(apiTasks).catch(err => console.error("Lỗi khi quá trình POST API luuketqua thất bại:", err));
+        if (answers.length > 0) {
+          const payload: any = { answers };
+          await apiClient.post('/KiemTra/NopBai', payload);
+        }
       } catch (e) {
-        console.error('Lỗi xử lý mảng API lưu kết quả', e);
+        console.error('Lỗi khi POST API KiemTra/NopBai:', e);
+        // Nếu API lưu không thành công thì lưu tạm vào localStorage để không mất lịch sử.
+        const raw = typeof window !== 'undefined' ? window.localStorage.getItem('history') : null;
+        const arr = raw ? JSON.parse(raw) : [];
+        arr.unshift(attempt);
+        if (typeof window !== 'undefined') window.localStorage.setItem('history', JSON.stringify(arr));
       }
 
     } catch (err) {

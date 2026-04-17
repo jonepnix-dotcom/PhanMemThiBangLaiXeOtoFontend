@@ -9,7 +9,8 @@ export interface LicenceRuleDto {
 export interface LicenceDto {
   licenceId?: number; // Có ID khi Edit, không có khi Create
   licenceCode: string;
-  totalQuestion: number;
+  totalQuestion?: number;
+  questionCount?: number;
   duration: number;
   passScore: number;
   licenceRule: LicenceRuleDto[];

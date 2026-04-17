@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { QuizGame } from './QuizGame';
 import { Question } from '@/app/types';
+import apiClient from '../api/axiosClient';
 import { Home, BookOpen, Clock, Award } from 'lucide-react';
 
 interface Attempt {
@@ -8,12 +9,13 @@ interface Attempt {
   examTitle: string;
   date: string;
   correctCount: number;
-  totalQuestions: number;
+  totalQuestions?: number;
   isPassed: boolean;
   timeTakenSeconds: number;
   incorrectQuestions?: Question[];
   questions?: Question[];
   selectedAnswers?: Record<string, number>;
+  failedByCritical?: boolean;
 }
 
 interface HistoryPageProps {
@@ -27,22 +29,78 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ userName, onBackToHome
   const [retryTitle, setRetryTitle] = useState<string>('');
 
   useEffect(() => {
-    try {
-      if (typeof window !== 'undefined') {
+    const loadLocalHistory = (): Attempt[] => {
+      try {
+        if (typeof window === 'undefined') return [];
         const raw = window.localStorage.getItem('history');
-        const parsed: Attempt[] = raw ? JSON.parse(raw) : [];
-        setHistory(Array.isArray(parsed) ? parsed : []);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw) as Attempt[];
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (err) {
+        console.error('Failed to load history from localStorage', err);
+        return [];
       }
-    } catch (err) {
-      console.error('Failed to load history from localStorage', err);
-      setHistory([]);
-    }
+    };
+
+    const mergeHistory = (apiHistory: Attempt[], localHistory: Attempt[]) => {
+      const all = [...localHistory, ...apiHistory];
+      const seen = new Map<string, Attempt>();
+      all.forEach(item => {
+        const key = item.id && item.id > 0 ? String(item.id) : item.date || `${item.examTitle}-${item.correctCount}`;
+        if (!seen.has(key)) seen.set(key, item);
+      });
+      return Array.from(seen.values()).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    };
+
+    const loadHistory = async () => {
+      const localHistory = loadLocalHistory();
+      try {
+        const response = await apiClient.get('/KiemTra/LichSu');
+        const data = response.data;
+        const historyArray = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.data)
+            ? data.data
+            : Array.isArray(data?.items)
+              ? data.items
+              : [];
+        if (historyArray.length > 0) {
+          const parsed = historyArray.map((item: any) => {
+            const id = Number(item.Id ?? item.id ?? item.ExamId ?? item.examId ?? 0);
+            const licenceCode = item.LicenceCode ?? item.licenceCode ?? item.LicenseCode ?? item.licenseCode ?? '';
+            const createdAt = item.CreatedAt ?? item.createdAt ?? item.createdAtString ?? new Date().toISOString();
+            const totalCorrect = Number(item.TotalCorrect ?? item.totalCorrect ?? 0);
+            const totalQuestionsValue = item.TotalQuestions ?? item.totalQuestions ?? item.TotalQuestion ?? item.totalQuestion;
+            return {
+              id,
+              examTitle: licenceCode ? `Bài thi ${licenceCode}` : `Bài thi #${id}`,
+              date: createdAt,
+              correctCount: totalCorrect,
+              totalQuestions: totalQuestionsValue !== undefined ? Number(totalQuestionsValue) : totalCorrect,
+              isPassed: Boolean(item.isPassed ?? item.IsPassed ?? item.passed ?? item.Passed),
+              timeTakenSeconds: Number(item.TimeTakenSeconds ?? item.timeTakenSeconds ?? 0),
+              failedByCritical: Boolean(item.HitCritical ?? item.hitCritical ?? item.Hitcritical ?? item.Hitcritical),
+              incorrectQuestions: [],
+              questions: [],
+              selectedAnswers: {}
+            } as Attempt;
+          });
+          setHistory(mergeHistory(parsed, localHistory));
+          return;
+        }
+      } catch (err) {
+        console.error('Failed to load history from API', err);
+      }
+      setHistory(localHistory);
+    };
+    loadHistory();
   }, []);
 
   const totalAttempts = history.length;
   const passedCount = history.filter(h => h.isPassed).length;
   const totalTimeSeconds = history.reduce((s, h) => s + (h.timeTakenSeconds || 0), 0);
   const totalIncorrect = history.reduce((acc, h) => acc + (h.incorrectQuestions ? h.incorrectQuestions.length : 0), 0);
+  const getDisplayedTotal = (h: Attempt) => h.totalQuestions ?? h.correctCount;
 
   const aggregateIncorrectQuestions = (): Question[] => {
     const map = new Map<number | string, Question>();
@@ -144,13 +202,13 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ userName, onBackToHome
                 setRetryQuestions(h.incorrectQuestions);
                 setRetryTitle(`Làm lại câu sai (${h.incorrectQuestions.length}): ${h.examTitle}`);
               } else {
-                alert('Tuyệt vời! Bạn không sai câu nào trong bài thi này.');
+                alert('Không có dữ liệu chi tiết câu sai cho lịch sử này.');
               }
             }}
           >
             <div>
               <h4 className="font-bold text-gray-800">{h.examTitle}</h4>
-              <p className="text-sm text-gray-500">{new Date(h.date).toLocaleString()} • {h.correctCount}/{h.totalQuestions} • {h.isPassed ? 'Đạt' : 'Không đạt'}</p>
+              <p className="text-sm text-gray-500">{new Date(h.date).toLocaleString()} • {h.correctCount}/{getDisplayedTotal(h)} • {h.isPassed ? 'Đạt' : 'Không đạt'}</p>
             </div>
 
             <div className="flex items-center gap-3">
