@@ -337,18 +337,43 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
 
     const title = showParalysisOnly ? 'Các câu điểm liệt' : (selectedChapter ? `${selectedChapter.title}: ${selectedChapter.topic}` : 'Ôn tập');
     return (
-      <QuizGame
-        examTitle={title}
-        questions={filteredQuestions}
-        onExit={() => { setSelectedChapter(null); setShowParalysisOnly(false); }}
-        mode="review"
-        showTimer={false}
-        autoAdvance={false}
-        allowUnsure={false}
-        submitButtonText="Hoàn thành"
-        showImmediateExplanation={true}
-        resultFullPage={true}
-      />
+      <div className="fixed inset-0 z-[100] flex flex-col bg-white animate-fade-in overflow-hidden">
+        {/* Blue header matching ThiPage style (left pill + centered title + right info) */}
+        <div className="flex items-center justify-between px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 border-b border-blue-700 z-20">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => { setSelectedChapter(null); setShowParalysisOnly(false); setShowTrafficSigns(false); }}
+              className="inline-flex items-center gap-2 text-blue-100 bg-blue-700/30 hover:bg-blue-800 px-4 py-2 rounded-full transition-all shadow-sm"
+            >
+              <ArrowLeft size={18} />
+              <span className="font-medium">Thoát</span>
+            </button>
+          </div>
+
+          <div className="flex-1 text-center">
+            <h1 className="text-lg md:text-xl font-extrabold text-white truncate">{title}</h1>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="text-white/90 text-sm">Thời gian: 20 phút · 1 câu hỏi</div>
+          </div>
+        </div>
+
+        <div className="flex-1 flex w-full min-h-0">
+          <QuizGame
+            examTitle={title}
+            questions={filteredQuestions}
+            onExit={() => { setSelectedChapter(null); setShowParalysisOnly(false); }}
+            mode="review"
+            showTimer={false}
+            autoAdvance={false}
+            allowUnsure={false}
+            submitButtonText="Hoàn thành"
+            showImmediateExplanation={true}
+            resultFullPage={true}
+          />
+        </div>
+      </div>
     );
   }
 
