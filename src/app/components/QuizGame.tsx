@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CheckCircle, XCircle, Clock, AlertTriangle, ArrowRight, ArrowLeft, RotateCcw, Loader2 } from 'lucide-react';
 import { Question } from '@/app/types';
-import {url} from '../../env.js'
+import { url } from '../../env.js'
 import apiClient from '../api/axiosClient';
+import { toast } from 'sonner';
 interface QuizGameProps {
   examTitle: string;
   questions: Question[];
   onExit: () => void;
+  licenceId?: number | null;
+  mode?: 'exam' | 'learn' | 'review';
   // Optional: when viewing a past submission
   initialSelectedAnswers?: Record<string, number>;
   startShowResult?: boolean;
@@ -23,9 +26,11 @@ interface QuizGameProps {
   autoAdvance?: boolean; // whether to automatically move to next question after answering
   allowUnsure?: boolean; // whether to show "mark unsure" checkbox and markers
   resultFullPage?: boolean; // when true, render result view to fill the page body
+  submitToServer?: boolean; // whether to POST final exam to server (default true)
+  trackOnlyCorrect?: boolean; // if true, only track learning progress when answer is correct
 }
 
-export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit, initialSelectedAnswers, startShowResult, readonly, examConfig, showTimer = true, submitButtonText = 'Nộp bài', showImmediateExplanation = false, autoAdvance = true, allowUnsure = true, resultFullPage = false }) => {
+export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit, licenceId, mode = 'learn', initialSelectedAnswers, startShowResult, readonly, examConfig, showTimer = true, submitButtonText = 'Nộp bài', showImmediateExplanation = false, autoAdvance = true, allowUnsure = true, resultFullPage = false, submitToServer = true, trackOnlyCorrect = false }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>(() => initialSelectedAnswers || {});
   const [unsureQuestions, setUnsureQuestions] = useState<Record<string, boolean>>(() => ({}));
@@ -37,7 +42,16 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
   const [showResultStep, setShowResultStep] = useState(false);
   const [timeElapsed, setTimeElapsed] = useState(0);
   const [focusedOptionIndex, setFocusedOptionIndex] = useState<number | null>(null);
-  
+  // helper to extract numeric ID from strings like "2", "api-2", "api-random-2"
+  const getNumericQuestionId = (id: string | number) => {
+    const s = String(id);
+    const m = s.match(/(\d+)$/);
+    const n = m ? parseInt(m[1], 10) : NaN;
+    return isNaN(n) ? 0 : n;
+  };
+  // Track which questions we've already sent progress for (avoid duplicate sends)
+  const sentProgressRef = useRef<Set<string>>(new Set());
+
   // State for mobile drawer
   const [isQuestionListOpen, setIsQuestionListOpen] = useState(false);
 
@@ -48,7 +62,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
         <AlertTriangle className="w-12 h-12 text-yellow-500 mb-4" />
         <h3 className="text-xl font-bold text-gray-800">Chưa có câu hỏi</h3>
         <p className="text-gray-500 mt-2">Đề thi này hiện tại chưa có dữ liệu câu hỏi.</p>
-        <button 
+        <button
           onClick={onExit}
           className="mt-6 px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors"
         >
@@ -153,11 +167,11 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
             e.preventDefault();
             handleSelectAnswer(focusedOptionIndex);
           } else if (focusedOptionIndex !== null && document.activeElement instanceof HTMLElement) {
-             // If a button is focused natively, we might trigger twice if we're not careful.
-             // Usually it's fine, but let's just make sure Space on a button clicks it anyway natively.
-             if (e.key === ' ' && document.activeElement.tagName === 'BUTTON') return;
-             e.preventDefault();
-             handleSelectAnswer(focusedOptionIndex);
+            // If a button is focused natively, we might trigger twice if we're not careful.
+            // Usually it's fine, but let's just make sure Space on a button clicks it anyway natively.
+            if (e.key === ' ' && document.activeElement.tagName === 'BUTTON') return;
+            e.preventDefault();
+            handleSelectAnswer(focusedOptionIndex);
           }
           break;
       }
@@ -173,7 +187,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleSelectAnswer = (optionIndex: number) => {
+  const handleSelectAnswer = async (optionIndex: number) => {
     if (showResult || readonly) return;
     // clear any pending auto-advance timer
     if (autoAdvanceTimer.current) {
@@ -185,6 +199,41 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
       ...prev,
       [currentQuestion.id]: optionIndex
     }));
+
+    // Save learning progress to server each time user selects an answer, but only once per question
+    try {
+      const questionIdNumeric = getNumericQuestionId(currentQuestion.id);
+      const trackKey = questionIdNumeric > 0 ? String(questionIdNumeric) : String(currentQuestion.id);
+
+      // Only send per-answer learning progress when in `learn` mode
+      if (mode === 'learn') {
+        const isCorrect = optionIndex === currentQuestion.correctAnswer;
+
+        // If trackOnlyCorrect is true, only send if the answer is correct
+        if (trackOnlyCorrect && !isCorrect) {
+          // Don't send if we're only tracking correct answers and this is wrong
+        } else if (!sentProgressRef.current.has(trackKey)) {
+          sentProgressRef.current.add(trackKey);
+
+          const selectedAnswerServerId = currentQuestion.answerIds && currentQuestion.answerIds[optionIndex] !== undefined
+            ? currentQuestion.answerIds[optionIndex]
+            : optionIndex;
+
+          const payload = {
+            QuestionId: questionIdNumeric,
+            SelectedAnswerId: selectedAnswerServerId,
+            IsCorrect: isCorrect,
+          };
+
+          // endpoint: /api/hoctap/luuketqua (apiClient baseURL already includes /api)
+          apiClient.post('/hoctap/luuketqua', payload).catch((err) => {
+            console.error('Lỗi lưu kết quả học tập:', err);
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Unexpected error while saving learning progress:', err);
+    }
 
     // auto-advance to next question after short delay (unless last question)
     if (autoAdvance && currentQuestionIndex < totalQuestions - 1) {
@@ -235,16 +284,16 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
     setShowResult(true);
     setIsSubmitted(true);
 
-  try {
-    const correct = usedQuestions.filter(q => selectedAnswers[q.id] === q.correctAnswer).length;
-    const total = usedQuestions.length;
-    const timeTakenSeconds = (examConfig?.timeSeconds ?? (22 * 60)) - timeLeft;
+    try {
+      const correct = usedQuestions.filter(q => selectedAnswers[q.id] === q.correctAnswer).length;
+      const total = usedQuestions.length;
+      const timeTakenSeconds = (examConfig?.timeSeconds ?? (22 * 60)) - timeLeft;
 
-    const incorrectQuestions = usedQuestions.filter(q => selectedAnswers[q.id] !== q.correctAnswer);
-    const failedByCritical = usedQuestions.some(q => q.isParalysis && selectedAnswers[q.id] !== q.correctAnswer);
-    const passCount = typeof examConfig?.passCount === 'number' ? examConfig!.passCount : Math.floor(total * 0.9);
-    const paralysisMandatory = examConfig?.paralysisMandatory ?? true;
-    const passed = correct >= passCount && !(paralysisMandatory && failedByCritical);
+      const incorrectQuestions = usedQuestions.filter(q => selectedAnswers[q.id] !== q.correctAnswer);
+      const failedByCritical = usedQuestions.some(q => q.isParalysis && selectedAnswers[q.id] !== q.correctAnswer);
+      const passCount = typeof examConfig?.passCount === 'number' ? examConfig!.passCount : Math.floor(total * 0.9);
+      const paralysisMandatory = examConfig?.paralysisMandatory ?? true;
+      const passed = correct >= passCount && !(paralysisMandatory && failedByCritical);
 
       const attempt = {
         id: Date.now(),
@@ -263,18 +312,49 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
 
       // Bắt đầu gọi API lưu kết quả xuống backend trên endpoint duy nhất
       try {
-        const answers = Object.entries(selectedAnswers).map(([questionId, answerId]) => {
-          const idStr = String(questionId).replace('api-', '');
-          const numericId = parseInt(idStr, 10);
+        // Build answers for ALL questions (include unanswered as null AnswerId)
+        const answers = usedQuestions.map(q => {
+          const numericId = getNumericQuestionId(q.id);
+          const selectedIndex = selectedAnswers[q.id];
+          const answerId = (selectedIndex !== undefined && Array.isArray(q.answerIds) && q.answerIds[Number(selectedIndex)] !== undefined)
+            ? q.answerIds[Number(selectedIndex)]
+            : -1;
+
           return {
-            questionId: isNaN(numericId) ? 0 : numericId,
-            answerId
+            questionId: numericId,
+            AnswerId: answerId,
           };
         }).filter(item => item.questionId > 0);
 
-        if (answers.length > 0) {
-          const payload: any = { answers };
-          await apiClient.post('/KiemTra/NopBai', payload);
+        if (mode === 'exam' && submitToServer) {
+          if (answers.length > 0) {
+            const payload: any = {
+              LicenceId: licenceId ?? null,
+              Answers: answers,
+            };
+
+            console.log('Submitting exam payload to /KiemTra/NopBai', payload);
+            try {
+              const res = await apiClient.post('/KiemTra/NopBai', payload);
+              console.log('Submit response', res);
+              toast.success('Kết quả đã được gửi lên máy chủ');
+            } catch (postErr) {
+              console.error('Lỗi khi POST API KiemTra/NopBai:', postErr);
+              toast.error('Không thể gửi kết quả lên máy chủ');
+              throw postErr;
+            }
+          } else {
+            console.warn('No valid questions to submit (answers array empty after mapping).');
+            toast.error('Không có câu hỏi hợp lệ để nộp.');
+          }
+        } else {
+          // Not in exam mode: do not submit full exam to /KiemTra/NopBai. Save locally instead.
+          console.log('Mode is not exam - skipping full submission. Mode:', mode);
+          const raw = typeof window !== 'undefined' ? window.localStorage.getItem('history') : null;
+          const arr = raw ? JSON.parse(raw) : [];
+          arr.unshift(attempt);
+          if (typeof window !== 'undefined') window.localStorage.setItem('history', JSON.stringify(arr));
+          toast.success('Kết quả lưu tạm (không phải chế độ thi).');
         }
       } catch (e) {
         console.error('Lỗi khi POST API KiemTra/NopBai:', e);
@@ -299,7 +379,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
 
   if (showResult) {
     const isReviewMode = !showTimer;
-    
+
     const outerClass = resultFullPage
       ? 'w-full h-full mx-0 bg-gray-50 flex flex-col overflow-y-auto animate-fade-in'
       : 'w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden animate-fade-in';
@@ -329,7 +409,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
               <p className="text-lg md:text-xl font-medium text-white/90 max-w-lg mb-6">
                 Tuyệt vời! Bạn đã trả lời đúng {correctCount} trên tổng số {totalQuestions} câu hỏi.
               </p>
-              
+
               <div className="flex flex-wrap justify-center gap-4 md:gap-8 bg-white/10 backdrop-blur-md px-6 py-4 rounded-xl border border-white/20">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-green-400"></div>
@@ -340,7 +420,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
                   <span className="font-semibold">{wrongCount} Câu sai</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+                  <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
                   <span className="font-semibold">{unansweredCount} Chưa làm</span>
                 </div>
               </div>
@@ -363,14 +443,14 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
               <p className="text-base md:text-lg font-medium text-white/90 max-w-lg mb-3">
                 Bạn đã trả lời đúng <span className="font-bold text-white text-xl mx-1">{correctCount}</span> trên tổng số <span className="font-bold text-white text-xl mx-1">{totalQuestions}</span> câu hỏi.
               </p>
-              
+
               {!isPassed && failedByCritical && (
                 <div className="mt-1 mb-4 flex items-center gap-2 bg-red-900/60 px-4 py-2 rounded-xl text-sm md:text-base font-bold border border-red-400/50 shadow-lg backdrop-blur-sm animate-pulse w-max mx-auto">
                   <AlertTriangle size={18} className="text-yellow-400" />
                   <span>Cảnh báo: Bạn đã trả lời sai câu điểm liệt!</span>
                 </div>
               )}
-              
+
               <div className="flex flex-wrap justify-center gap-4 md:gap-6 bg-white/15 backdrop-blur-md px-5 py-2.5 rounded-xl border border-white/20 mt-1 shadow-inner">
                 <div className="flex items-center gap-2">
                   <div className={`w-3 h-3 rounded-full ${isPassed ? 'bg-green-300' : 'bg-red-300'}`}></div>
@@ -385,7 +465,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
             </div>
           </div>
         )}
-        
+
         <div className={bodyClass}>
           {isReviewMode ? (
             <div className="flex items-center justify-between mb-6 border-b border-gray-100 pb-4">
@@ -399,22 +479,20 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
               const userAnswer = selectedAnswers[q.id];
               const isCorrect = userAnswer === q.correctAnswer;
               const isUnsure = !!unsureQuestions[q.id];
-              const isUnanswered = userAnswer === undefined;
+              const isUnanswered = userAnswer === undefined || userAnswer === null;
 
-              const containerClass = `p-5 rounded-2xl border-2 transition-all duration-300 shadow-sm ${
-                isUnanswered ? 'border-gray-200 bg-gray-50' : 
-                (isUnsure ? 'border-yellow-400 bg-yellow-50' : 
-                (isCorrect ? 'border-green-200 bg-green-50/50' : 'border-red-200 bg-red-50/50'))
-              }`;
+              const containerClass = `p-5 rounded-2xl border-2 transition-all duration-300 shadow-sm ${isUnanswered ? 'border-yellow-400 bg-yellow-50' :
+                (isUnsure ? 'border-yellow-400 bg-yellow-50' :
+                  (isCorrect ? 'border-green-200 bg-green-50/50' : 'border-red-200 bg-red-50/50'))
+                }`;
 
               return (
                 <div key={q.id} className={containerClass}>
                   <div className="flex gap-4">
                     <div className="flex-shrink-0 flex flex-col items-center">
-                      <span className={`w-10 h-10 flex items-center justify-center rounded-full text-sm font-bold shadow-md bg-white border ${
-                        isUnanswered ? 'text-gray-500 border-gray-300' :
+                      <span className={`w-10 h-10 flex items-center justify-center rounded-full text-sm font-bold shadow-md bg-white border ${isUnanswered ? 'text-gray-500 border-gray-300' :
                         (isCorrect ? 'text-green-600 border-green-300' : 'text-red-500 border-red-300')
-                      }`}>
+                        }`}>
                         #{index + 1}
                       </span>
                     </div>
@@ -429,21 +507,21 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
                           </span>
                         )}
                         {q.isParalysis && (
-                           <span className="text-xs font-bold text-red-700 bg-red-100 flex items-center gap-1 border border-red-200 px-3 py-1 rounded-full shadow-sm">
-                             <AlertTriangle size={14} /> 
-                             Câu điểm liệt
-                           </span>
+                          <span className="text-xs font-bold text-red-700 bg-red-100 flex items-center gap-1 border border-red-200 px-3 py-1 rounded-full shadow-sm">
+                            <AlertTriangle size={14} />
+                            Câu điểm liệt
+                          </span>
                         )}
                         {isUnanswered && (
-                          <span className="text-xs font-bold text-gray-600 bg-gray-200 px-3 py-1 rounded-full shadow-sm">
+                          <span className="text-xs font-bold text-yellow-800 bg-yellow-100 px-3 py-1 rounded-full shadow-sm">
                             Chưa trả lời
                           </span>
                         )}
                       </div>
-                      
+
                       {q.imageUrl && (
                         <div className="mb-4 text-center">
-                          <img src={url +'assets/uploads/'+ q.imageUrl} alt="Hình ảnh câu hỏi" className="max-h-64 object-contain inline-block border border-gray-200 rounded-lg shadow-sm" />
+                          <img src={url + 'assets/uploads/' + q.imageUrl} alt="Hình ảnh câu hỏi" className="max-h-64 object-contain inline-block border border-gray-200 rounded-lg shadow-sm" />
                         </div>
                       )}
 
@@ -452,7 +530,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
                           (() => {
                             const isOptCorrect = i === q.correctAnswer;
                             const isOptUser = i === userAnswer;
-                            
+
                             let baseClass = 'p-3 rounded-xl border flex items-center justify-between gap-3 min-h-[50px]';
                             if (isOptCorrect && isOptUser) {
                               baseClass += ' border-green-500 bg-green-100 text-green-900 font-bold shadow-md';
@@ -467,15 +545,14 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
                             return (
                               <div key={i} className={baseClass}>
                                 <div className="flex items-center gap-3">
-                                  <div className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold shrink-0 ${
-                                    isOptCorrect ? 'bg-green-600 text-white' :
+                                  <div className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold shrink-0 ${isOptCorrect ? 'bg-green-600 text-white' :
                                     isOptUser ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-600'
-                                  }`}>
+                                    }`}>
                                     {String.fromCharCode(65 + i)}
                                   </div>
                                   <span className="break-words text-sm md:text-base leading-snug">{opt}</span>
                                 </div>
-                                
+
                                 <div className="shrink-0 flex items-center">
                                   {isOptCorrect && <CheckCircle size={20} className="text-green-600 drop-shadow-sm" />}
                                   {isOptUser && !isOptCorrect && <XCircle size={20} className="text-red-500" />}
@@ -485,7 +562,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
                           })()
                         ))}
                       </div>
-                      
+
                       {q.explanation && (
                         <div className="mt-5 p-4 rounded-xl bg-orange-50 border border-orange-200 shadow-inner">
                           <div className="flex items-start gap-3">
@@ -510,7 +587,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
         </div>
 
         <div className={`p-6 bg-gray-50 border-t border-gray-100 flex justify-center ${resultFullPage ? '' : 'sticky bottom-0 z-10 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)]'}`}>
-          <button 
+          <button
             onClick={onExit}
             className="flex items-center gap-3 px-10 py-4 bg-gray-900 text-white flex-shrink-0 rounded-2xl font-bold hover:bg-black transition-all hover:scale-105 shadow-xl hover:shadow-black/20"
           >
@@ -552,7 +629,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
       */}
       {/* Mobile Backdrop for Drawer */}
       {isQuestionListOpen && (
-        <div 
+        <div
           className="md:hidden fixed inset-0 bg-black/50 z-40 backdrop-blur-sm transition-opacity"
           onClick={() => setIsQuestionListOpen(false)}
         />
@@ -563,7 +640,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
         fixed md:static inset-y-0 right-0 z-50 flex flex-col bg-white border-l md:border-l-0 md:border-r border-gray-200 shadow-2xl md:shadow-none transition-transform duration-300 ease-in-out w-[85vw] max-w-[320px] md:w-80 md:flex-shrink-0 md:h-[calc(100vh-5rem)]
         ${isQuestionListOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}
       `}>
-        
+
         {/* Drawer Header (Mobile Only) */}
         <div className="md:hidden flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
           <h3 className="font-bold text-gray-800 text-lg">Danh sách câu hỏi</h3>
@@ -580,7 +657,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
               {Object.keys(selectedAnswers).length}/{totalQuestions} câu
             </span>
           </div>
-          
+
           {showTimer && (
             <div className={`flex items-center justify-center gap-3 font-mono text-4xl p-4 rounded-xl font-bold shadow-inner ${timeLeft <= 300 ? 'bg-red-50 text-red-600 border border-red-200 animate-pulse' : 'bg-blue-50 text-blue-700 border border-blue-200'}`}>
               <Clock size={28} className={timeLeft <= 300 ? 'text-red-500' : 'text-blue-600'} />
@@ -595,7 +672,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
             <span>Danh sách câu hỏi</span>
             <span className="text-gray-400">{Object.keys(selectedAnswers).length}/{totalQuestions}</span>
           </h4>
-          
+
           {/* Mobile progress indicator inside drawer */}
           <div className="md:hidden mb-4 px-2">
             <div className="flex justify-between text-sm font-semibold text-gray-600 mb-1">
@@ -613,14 +690,14 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
               const isAnswered = selectedOptionIndex !== undefined;
               const isCurrent = currentQuestionIndex === idx;
               const isMarked = unsureQuestions[q.id];
-              
+
               let btnClass = "bg-white text-gray-600 border-gray-200 hover:bg-gray-100 hover:border-gray-300 shadow-sm";
               if (isCurrent || isMarked) {
                 btnClass = "bg-yellow-50 text-yellow-700 border-yellow-300 shadow-[0_0_10px_rgba(253,224,71,0.4)]";
               } else if (isAnswered) {
                 btnClass = "bg-green-50 text-green-700 border-green-300";
               }
-              
+
               const selectedOptionLabel = isAnswered ? String.fromCharCode(65 + selectedOptionIndex) : null;
 
               return (
@@ -642,16 +719,16 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
                     </span>
                   )}
                   {isMarked && !selectedOptionLabel && (
-                     <span className="absolute -top-1.5 -left-1.5 min-w-[20px] h-[20px] rounded-full text-[10px] flex items-center justify-center font-extrabold shadow-sm bg-yellow-500 text-white border-2 border-white">
-                       ?
-                     </span>
+                    <span className="absolute -top-1.5 -left-1.5 min-w-[20px] h-[20px] rounded-full text-[10px] flex items-center justify-center font-extrabold shadow-sm bg-yellow-500 text-white border-2 border-white">
+                      ?
+                    </span>
                   )}
                 </button>
               );
             })}
           </div>
         </div>
-        
+
         {/* Submit Actions (PC ONLY) */}
         <div className="hidden md:block p-3 sm:p-6 border-t border-gray-200 bg-white backdrop-blur-sm mt-auto z-10 bottom-0 sticky">
           <button
@@ -667,7 +744,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-white relative pb-[env(safe-area-inset-bottom)] md:pb-0">
         {/* Main Content Scroll Area - Leave room for Sticky Footer */}
         <div className="flex-1 overflow-y-auto p-4 md:p-10 lg:p-12 pb-32 md:pb-32 hide-scrollbar md:scrollbar-default">
-          
+
           <div className="max-w-5xl mx-auto flex flex-col mb-20 md:mb-0 min-h-full">
             {/* Exam Title (if any) */}
             {examTitle && (
@@ -681,7 +758,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
               <span className="inline-flex py-1 px-3 md:py-1.5 md:px-4 bg-blue-50 text-blue-700 rounded-lg text-sm md:text-base font-bold border border-blue-200 shadow-sm">
                 Câu {currentQuestionIndex + 1} / {totalQuestions}
               </span>
-              
+
               {allowUnsure && (
                 <label className="inline-flex items-center gap-2 text-xs md:text-sm text-gray-500 hover:text-yellow-600 cursor-pointer transition-colors bg-white py-1.5 px-3 rounded-lg border border-gray-200 shadow-sm">
                   <input
@@ -698,7 +775,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
 
             {/* Vertical Flow View: Question -> Image -> Options */}
             <div className="flex flex-col gap-3 sm:p-6 md:gap-8 mb-8 max-w-4xl w-full mx-auto">
-              
+
               {/* 1. Question Text */}
               <h3 className="text-xl md:text-2xl font-bold text-gray-800 leading-snug md:leading-relaxed">
                 {currentQuestion.content}
@@ -708,9 +785,9 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
               {currentQuestion.imageUrl && (
                 <div className="w-full flex items-center justify-center">
                   <div className="w-full max-w-2xl bg-gray-50/50 p-2 md:p-4 rounded-2xl border border-gray-200 flex items-center justify-center shadow-inner overflow-hidden">
-                    <img 
-                      src={url +'assets/uploads/'+ currentQuestion.imageUrl} 
-                      alt="Hình minh họa" 
+                    <img
+                      src={url + 'assets/uploads/' + currentQuestion.imageUrl}
+                      alt="Hình minh họa"
                       className="max-w-full h-auto object-contain rounded-xl drop-shadow-md"
                       style={{ maxHeight: '45vh' }}
                     />
@@ -727,7 +804,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
                   const isOptUser = index === userAns;
 
                   let optionClass = 'w-full h-auto text-left p-4 md:p-5 rounded-xl border transition-all duration-200 flex items-start gap-4 group ';
-                  
+
                   if (focusedOptionIndex === index) {
                     optionClass += 'ring-2 ring-blue-500 ring-offset-2 scale-[1.02] '; // Visual indicator for keyboard focus
                   }
@@ -741,8 +818,8 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
                       optionClass += 'bg-gray-50 border-gray-200 text-gray-500 opacity-70';
                     }
                   } else {
-                    optionClass += isOptUser 
-                      ? 'bg-blue-50 border-blue-500 text-blue-900 shadow-md scale-[1.01]' 
+                    optionClass += isOptUser
+                      ? 'bg-blue-50 border-blue-500 text-blue-900 shadow-md scale-[1.01]'
                       : 'bg-white hover:bg-blue-50/50 hover:border-blue-300 border-gray-200 text-gray-700';
                   }
 
@@ -784,13 +861,13 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
                   );
                 })}
               </div>
-              
+
               {/* 4. Explanations (if shown immediately) */}
               {showImmediateExplanation && selectedAnswers[currentQuestion.id] !== undefined && (
                 <div className="mt-2 rounded-xl border border-gray-200 bg-gray-50/80 p-5 shadow-inner">
                   {currentQuestion.explanation && (
                     <div className="mb-4 text-[17px] leading-relaxed text-gray-700">
-                      <span className="font-bold text-yellow-600 mr-2 text-lg">💡 Giải thích:</span> 
+                      <span className="font-bold text-yellow-600 mr-2 text-lg">💡 Giải thích:</span>
                       {currentQuestion.explanation}
                     </div>
                   )}
@@ -802,7 +879,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
               )}
 
             </div>
-            
+
           </div>
         </div>
 
@@ -817,11 +894,10 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
             <button
               onClick={handlePrev}
               disabled={currentQuestionIndex === 0}
-              className={`flex-1 md:flex-none flex items-center justify-center py-2.5 px-3 md:w-[100px] md:py-3 rounded-xl font-bold transition-all ${
-                currentQuestionIndex === 0 
-                  ? 'opacity-30 cursor-not-allowed text-gray-400 bg-gray-50' 
-                  : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900 active:scale-95 bg-white border border-gray-200 shadow-sm md:border-transparent md:shadow-none'
-              }`}
+              className={`flex-1 md:flex-none flex items-center justify-center py-2.5 px-3 md:w-[100px] md:py-3 rounded-xl font-bold transition-all ${currentQuestionIndex === 0
+                ? 'opacity-30 cursor-not-allowed text-gray-400 bg-gray-50'
+                : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900 active:scale-95 bg-white border border-gray-200 shadow-sm md:border-transparent md:shadow-none'
+                }`}
               title="Câu trước"
             >
               <ArrowLeft size={18} className="mr-1" /> <span className="hidden xs:inline md:inline">Trước</span>
@@ -829,7 +905,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
 
             {/* Middle Divider (Desktop) / Menu button (Mobile) */}
             <div className="hidden md:block w-px h-8 bg-gray-200 mx-1"></div>
-            
+
             {/* Nút mở danh sách (Mobile only) */}
             <button
               onClick={() => setIsQuestionListOpen(true)}
@@ -843,11 +919,10 @@ export const QuizGame: React.FC<QuizGameProps> = ({ examTitle, questions, onExit
             <button
               onClick={handleNext}
               disabled={currentQuestionIndex === totalQuestions - 1}
-              className={`flex-1 md:flex-none flex items-center justify-center py-2.5 px-3 md:w-[100px] md:py-3 rounded-xl font-bold transition-all ${
-                currentQuestionIndex === totalQuestions - 1 
-                  ? 'opacity-30 cursor-not-allowed text-gray-400 bg-gray-50' 
-                  : 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95 shadow-md shadow-blue-500/30 md:bg-white md:text-blue-600 md:border md:border-blue-100 md:shadow-lg md:hover:bg-blue-50 md:hover:text-blue-700'
-              }`}
+              className={`flex-1 md:flex-none flex items-center justify-center py-2.5 px-3 md:w-[100px] md:py-3 rounded-xl font-bold transition-all ${currentQuestionIndex === totalQuestions - 1
+                ? 'opacity-30 cursor-not-allowed text-gray-400 bg-gray-50'
+                : 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95 shadow-md shadow-blue-500/30 md:bg-white md:text-blue-600 md:border md:border-blue-100 md:shadow-lg md:hover:bg-blue-50 md:hover:text-blue-700'
+                }`}
               title="Câu tiếp theo"
             >
               <span className="hidden xs:inline md:inline">Tiếp</span> <ArrowRight size={18} className="ml-1" />

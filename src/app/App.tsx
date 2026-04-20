@@ -8,6 +8,7 @@ import pageBackground from '@/assets/background-main.png';
 import { AuthPage } from '@/app/components/AuthPage';
 import { ProfilePage } from '@/app/components/ProfilePage';
 import { HistoryPage } from '@/app/components/HistoryPage';
+import { FrequentlyWrongQuestionsPage } from '@/app/components/FrequentlyWrongQuestionsPage';
 import { ThiPage } from '@/app/components/ThiPage';
 import { ReviewPage } from '@/app/components/ReviewPage';
 // Removes admin pages
@@ -27,7 +28,7 @@ import { SignalRProvider } from './contexts/SignalRContext';
 
 
 // Định nghĩa các trang chính
-type PageKey = 'HOME' | 'INTRO' | 'THI' | 'REVIEW' | 'CONSULTATION' | 'DOCS' | 'PROFILE' | 'HISTORY' | 'PRIVACY' | 'CONTACT';
+type PageKey = 'HOME' | 'INTRO' | 'THI' | 'REVIEW' | 'CONSULTATION' | 'DOCS' | 'PROFILE' | 'HISTORY' | 'FREQUENTLY_WRONG' | 'PRIVACY' | 'CONTACT';
 
 const PAGES: Record<PageKey, string> = {
   HOME: 'Trang Chủ',
@@ -38,6 +39,7 @@ const PAGES: Record<PageKey, string> = {
   DOCS: 'Tài liệu',
   PROFILE: 'Hồ sơ',
   HISTORY: 'Lịch sử',
+  FREQUENTLY_WRONG: 'Câu Sai Thường Xuyên',
   PRIVACY: 'Chính sách bảo mật',
   CONTACT: 'Liên hệ & Góp ý',
 };
@@ -88,12 +90,13 @@ const App = () => {
         if (path.startsWith('/consultation')) return 'CONSULTATION';
         if (path.startsWith('/profile')) return 'PROFILE';
         if (path.startsWith('/history')) return 'HISTORY';
+        if (path.startsWith('/frequently-wrong')) return 'FREQUENTLY_WRONG';
         if (path.startsWith('/privacy')) return 'PRIVACY';
         if (path.startsWith('/contact')) return 'CONTACT';
 
         // Fall back to saved page in localStorage
         const saved = window.localStorage.getItem('currentPage') as PageKey | null;
-        const validKeys: PageKey[] = ['HOME', 'INTRO', 'THI', 'REVIEW', 'DOCS', 'PROFILE', 'HISTORY', 'PRIVACY', 'CONTACT'];
+        const validKeys: PageKey[] = ['HOME', 'INTRO', 'THI', 'REVIEW', 'DOCS', 'PROFILE', 'HISTORY', 'FREQUENTLY_WRONG', 'PRIVACY', 'CONTACT'];
         if (saved && validKeys.includes(saved)) return saved;
       }
     } catch (err) {
@@ -119,10 +122,10 @@ const App = () => {
   useEffect(() => {
     const init = async () => {
       try {
-  const token = Cookies.get('accessToken') || localStorage.getItem('accessToken');
-  const role = Cookies.get('userRole') || localStorage.getItem('userRole');
-  let storedName = Cookies.get('userName') || localStorage.getItem('userName');
-  let storedEmail = Cookies.get('userEmail') || localStorage.getItem('userEmail');
+        const token = Cookies.get('accessToken') || localStorage.getItem('accessToken');
+        const role = Cookies.get('userRole') || localStorage.getItem('userRole');
+        let storedName = Cookies.get('userName') || localStorage.getItem('userName');
+        let storedEmail = Cookies.get('userEmail') || localStorage.getItem('userEmail');
 
         if (storedName === 'undefined') storedName = null;
         if (storedEmail === 'undefined') storedEmail = null;
@@ -221,15 +224,15 @@ const App = () => {
     const fetchAll = async () => {
       try {
         console.log('Fetching questions from API by chapters...');
-        
-        const chapterPromises = [1,2,3,4,5,6,7].map(async (chuong) => {
+
+        const chapterPromises = [1, 2, 3, 4, 5, 6, 7].map(async (chuong) => {
           try {
             const res = await fetch(`${url}api/CauHoi?Chuong=${chuong}&SoLuong=1000`);
             if (!res.ok) return [];
-            
+
             const rawData = await res.json();
             let questions = Array.isArray(rawData) ? rawData : (rawData.questions || rawData.data || rawData.items || []);
-            
+
             // Lặp các trang tiếp theo nếu size không đủ lấy hết
             if (!Array.isArray(rawData) && rawData.totalPages && rawData.totalPages > 1) {
               const additionalPromises = [];
@@ -244,7 +247,7 @@ const App = () => {
                 questions = [...questions, ...nextQ];
               });
             }
-            
+
             // Ghi chú chapter này từ API query thay vì dựa vào q.categories để đảm bảo phân loại 100% chuẩn xác
             return questions.map((q: any) => ({ ...q, _injectedChapterId: chuong }));
           } catch (err) {
@@ -261,20 +264,22 @@ const App = () => {
           console.warn('No questions found or data is not an array.');
           return;
         }
-  
+
         console.log('Mapping', dataQ.length, 'questions...');
         const mapped: Question[] = dataQ.map((q: any) => {
           const options = Array.isArray(q.answers) ? q.answers.map((a: any) => a?.answerContent ?? String(a)) : [];
+          const answerIds = Array.isArray(q.answers) ? q.answers.map((a: any) => Number(a?.id ?? a)) : [];
           let correctIndex = 0;
           if (Array.isArray(q.answers)) {
             const idx = q.answers.findIndex((a: any) => a && a.isCorrect === true);
             if (idx !== -1) correctIndex = idx;
           }
-  
+
           return {
             id: `api-${String(q.id)}`,
             content: q.questionContent ?? '',
             options,
+            answerIds,
             correctAnswer: Math.max(0, Math.min(correctIndex, options.length - 1)),
             chapterId: q._injectedChapterId,
             isParalysis: !!q.isCritical,
@@ -283,10 +288,10 @@ const App = () => {
           } as Question;
         });
 
-        try { 
-          window.localStorage.removeItem('questions'); 
+        try {
+          window.localStorage.removeItem('questions');
           window.sessionStorage.setItem('questions', JSON.stringify(mapped));
-        } catch {}
+        } catch { }
         setQuestions(mapped);
       } catch (err) {
         console.warn('Failed to fetch questions from new API', err);
@@ -376,7 +381,7 @@ const App = () => {
     try {
       if (typeof window !== 'undefined') {
         const pathMap: Record<PageKey, string> = {
-          HOME: '/home', INTRO: '/intro', THI: '/thi', REVIEW: '/review', CONSULTATION: '/consultation', DOCS: '/docs', PROFILE: '/profile', HISTORY: '/history', PRIVACY: '/privacy', CONTACT: '/contact'
+          HOME: '/home', INTRO: '/intro', THI: '/thi', REVIEW: '/review', CONSULTATION: '/consultation', DOCS: '/docs', PROFILE: '/profile', HISTORY: '/history', FREQUENTLY_WRONG: '/frequently-wrong', PRIVACY: '/privacy', CONTACT: '/contact'
         };
         const newPath = pathMap[page] || '/home';
         window.history.replaceState(null, '', newPath);
@@ -393,7 +398,7 @@ const App = () => {
       if (typeof window !== 'undefined') {
         window.localStorage.setItem('currentPage', currentPage);
         const pathMap: Record<PageKey, string> = {
-          HOME: '/home', INTRO: '/intro', THI: '/thi', REVIEW: '/review', CONSULTATION: '/consultation', DOCS: '/docs', PROFILE: '/profile', HISTORY: '/history', PRIVACY: '/privacy', CONTACT: '/contact'
+          HOME: '/home', INTRO: '/intro', THI: '/thi', REVIEW: '/review', CONSULTATION: '/consultation', DOCS: '/docs', PROFILE: '/profile', HISTORY: '/history', FREQUENTLY_WRONG: '/frequently-wrong', PRIVACY: '/privacy', CONTACT: '/contact'
         };
         const newPath = pathMap[currentPage] || '/home';
         if (window.location.pathname !== newPath) {
@@ -448,39 +453,39 @@ const App = () => {
 
   // Hàm đăng xuất
   const handleLogout = async () => {
-  // Clean SignalR
-  try {
-    const connection = getSignalRConnection();
-    if (connection?.state === "Connected") {
-      await connection.invoke("SetOffline").catch(() => {});
+    // Clean SignalR
+    try {
+      const connection = getSignalRConnection();
+      if (connection?.state === "Connected") {
+        await connection.invoke("SetOffline").catch(() => { });
+      }
+      if (connection?.state !== "Disconnected") {
+        await connection.stop().catch(() => { });
+      }
+      resetSignalRConnection();           // ← Quan trọng
+    } catch (err) {
+      console.error("Clean SignalR error:", err);
     }
-    if (connection?.state !== "Disconnected") {
-      await connection.stop().catch(() => {});
-    }
-    resetSignalRConnection();           // ← Quan trọng
-  } catch (err) {
-    console.error("Clean SignalR error:", err);
-  }
 
-  // Clean auth + UI
-  setIsAuthenticated(false);
-  setUserRole(null);
-  Cookies.remove('accessToken', { path: '/' });
-  Cookies.remove('userRole', { path: '/' });
-  Cookies.remove('userId', { path: '/' });
-  Cookies.remove('userName', { path: '/' });
-  Cookies.remove('userEmail', { path: '/' });
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('userRole');
-  localStorage.removeItem('userId');
-  localStorage.removeItem('userName');
-  localStorage.removeItem('userEmail');
-  setUserData({ name: "Khách", email: "" });
-  setCurrentPage("HOME");
-  setShowAuthPage(true);
+    // Clean auth + UI
+    setIsAuthenticated(false);
+    setUserRole(null);
+    Cookies.remove('accessToken', { path: '/' });
+    Cookies.remove('userRole', { path: '/' });
+    Cookies.remove('userId', { path: '/' });
+    Cookies.remove('userName', { path: '/' });
+    Cookies.remove('userEmail', { path: '/' });
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userEmail');
+    setUserData({ name: "Khách", email: "" });
+    setCurrentPage("HOME");
+    setShowAuthPage(true);
 
-  console.log("👋 Logout thành công");
-};
+    console.log("👋 Logout thành công");
+  };
 
   // Nếu chưa đăng nhập và đang hiển thị trang Auth
   if (!isAuthenticated && showAuthPage) {
@@ -591,6 +596,17 @@ const App = () => {
           );
         }
         return null;
+      case 'FREQUENTLY_WRONG':
+        if (isAuthenticated) {
+          return (
+            <FrequentlyWrongQuestionsPage
+              userName={userData.name}
+              onBackToHome={() => handlePageChange('THI')}
+              limit={50}
+            />
+          );
+        }
+        return null;
       case 'PRIVACY':
         return (
           <PrivacyPolicyPage
@@ -621,190 +637,190 @@ const App = () => {
 
   return (
     <SignalRProvider isAuthenticated={isAuthenticated}>
-    <div
-      className="min-h-screen w-full flex flex-col font-sans text-gray-800 overflow-x-hidden"
-      style={{
-        backgroundImage: `url(${pageBackground})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed',
-        backgroundColor: '#060066',
-      }}
-    >
-      {/* Navbar */}
-      <nav className="w-full bg-blue-50 px-4 md:px-8 py-4 shadow-sm flex items-center justify-between sticky top-0 z-50 backdrop-blur-md bg-opacity-90">
-        <div
-          className="flex items-center gap-2 md:gap-4 cursor-pointer hover:opacity-80 transition-opacity"
-          onClick={() => handlePageChange('HOME')}
-        >
-          <div className="relative h-16 w-16 md:h-20 md:w-20 rounded-2xl shadow-md overflow-hidden flex items-center justify-center shrink-0 bg-white">
-            <img
-              src={logoImage}
-              alt="Nhóm 3 - Công nghệ .NET9"
-              className="h-full w-full object-cover relative z-0"
-            />
-            {/* Khung viền đè trên ảnh */}
-            <div className="absolute inset-0 rounded-2xl border-[3px] border-white/80 z-10 pointer-events-none"></div>
-          </div>
-          <div className="flex flex-col justify-center">
-            <span className="font-extrabold text-lg md:text-2xl tracking-tight bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent sm:block uppercase">
-              NHÓM 3
-            </span>
-            <span className="text-xs md:text-sm font-semibold tracking-wide text-gray-500 hidden sm:block">
-              CÔNG NGHỆ .NET9
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 md:gap-6">
-          <div className="hidden lg:flex items-center gap-2">
-            <NavButton
-              active={currentPage === 'HOME'}
-              onClick={() => handlePageChange('HOME')}
-              icon={<Home size={20} />}
-              label={PAGES.HOME}
-            />
-            <NavButton
-              active={currentPage === 'INTRO'}
-              onClick={() => handlePageChange('INTRO')}
-              icon={<Info size={20} />}
-              label={PAGES.INTRO}
-            />
-            <NavButton
-              active={currentPage === 'THI'}
-              onClick={() => handlePageChange('THI')}
-              icon={<CheckSquare size={20} />}
-              label={PAGES.THI}
-            />
-            <NavButton
-              active={currentPage === 'REVIEW'}
-              onClick={() => handlePageChange('REVIEW')}
-              icon={<Book size={20} />}
-              label={PAGES.REVIEW}
-            />
-            <NavButton
-              active={currentPage === 'CONSULTATION'}
-              onClick={() => handlePageChange('CONSULTATION')}
-              icon={<Mail size={20} />}
-              label={PAGES.CONSULTATION}
-            />
-            <NavButton
-              active={currentPage === 'DOCS'}
-              onClick={() => handlePageChange('DOCS')}
-              icon={<FileText size={20} />}
-              label={PAGES.DOCS}
-            />
-          </div>
-
-          <div className="lg:hidden flex items-center justify-center relative">
-            <button
-              onClick={() => setShowMobileMenu(!showMobileMenu)}
-              className="p-2 text-blue-600 bg-blue-100 rounded-lg hover:bg-blue-200 transition-colors"
-            >
-              {showMobileMenu ? <X size={24} /> : <Menu size={24} />}
-            </button>
-            <AnimatePresence>
-              {showMobileMenu && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  className="absolute top-14 right-0 w-64 bg-white rounded-xl shadow-xl border border-blue-100 p-2 flex flex-col gap-1 z-50 origin-top-right"
-                >
-                  <NavButtonMobile active={currentPage === 'HOME'} onClick={() => { handlePageChange('HOME'); setShowMobileMenu(false); }} icon={<Home size={20} />} label={PAGES.HOME} />
-                  <NavButtonMobile active={currentPage === 'INTRO'} onClick={() => { handlePageChange('INTRO'); setShowMobileMenu(false); }} icon={<Info size={20} />} label={PAGES.INTRO} />
-                  <NavButtonMobile active={currentPage === 'THI'} onClick={() => { handlePageChange('THI'); setShowMobileMenu(false); }} icon={<CheckSquare size={20} />} label={PAGES.THI} />
-                  <NavButtonMobile active={currentPage === 'REVIEW'} onClick={() => { handlePageChange('REVIEW'); setShowMobileMenu(false); }} icon={<Book size={20} />} label={PAGES.REVIEW} />
-                  <NavButtonMobile active={currentPage === 'CONSULTATION'} onClick={() => { handlePageChange('CONSULTATION'); setShowMobileMenu(false); }} icon={<Mail size={20} />} label={PAGES.CONSULTATION} />
-                  <NavButtonMobile active={currentPage === 'DOCS'} onClick={() => { handlePageChange('DOCS'); setShowMobileMenu(false); }} icon={<FileText size={20} />} label={PAGES.DOCS} />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          <div className="h-8 w-[1px] bg-blue-200 mx-2 hidden md:block"></div>
-
-          <div className="flex items-center gap-2 cursor-pointer relative group">
-            <div className="relative">
-              <img
-                src={userAvatar}
-                alt="User Avatar"
-                className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover border-2 border-white shadow-md group-hover:border-blue-200 transition-colors"
-              />
-              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
-            </div>
-
-            {/* User Dropdown */}
-            <div className="absolute top-full right-0 pt-2 hidden group-hover:block w-56 md:w-64 z-50 origin-top-right">
-              {isAuthenticated ? (
-                // Dropdown khi đã đăng nhập
-                <div className="bg-white rounded-xl shadow-xl border border-blue-100 p-4 animate-fade-in flex flex-col gap-3">
-                  <div className="text-center pb-3 border-b border-gray-200">
-                    <p className="font-bold text-gray-900">{userData.name}</p>
-                    {userData.email && <p className="text-sm text-gray-500">{userData.email}</p>}
-                  </div>
-                  {userRole === 'ADMIN' && (
-                    <button
-                      className="w-full bg-gradient-to-r from-blue-700 to-cyan-600 hover:from-blue-800 hover:to-cyan-700 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-all shadow-sm"
-                      onClick={() => window.location.href = '/admin'}
-                    >
-                      <Shield size={18} />
-                      <span>Trang Quản trị</span>
-                    </button>
-                  )}
-                  <button
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm"
-                    onClick={() => handlePageChange('PROFILE')}
-                  >
-                    <UserIcon size={18} />
-                    <span>Xem Profile</span>
-                  </button>
-                  <button
-                    className="w-full bg-red-50 hover:bg-red-100 text-red-600 py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
-                    onClick={handleLogout}
-                  >
-                    <LogOut size={18} />
-                    <span>Đăng xuất</span>
-                  </button>
-                </div>
-              ) : (
-                // Dropdown khi chưa đăng nhập
-                <div className="bg-white rounded-xl shadow-xl border border-blue-100 p-4 animate-fade-in flex flex-col items-center gap-3">
-                  <p className="text-gray-600 font-medium text-sm">Bạn chưa đăng nhập?</p>
-                  <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm" onClick={handleShowAuthPage}>
-                    <LogIn size={18} />
-                    <span>Đăng nhập ngay</span>
-                  </button>
-                  <div className="text-xs text-gray-400 text-center">
-                    Truy cập để lưu kết quả thi và tiến độ học tập
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Main Content with Transition */}
-      <main className="flex-1 flex flex-col relative w-full overflow-auto">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentPage + resetKey} // Change key to trigger animation
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="flex-1 flex flex-col w-full"
+      <div
+        className="min-h-screen w-full flex flex-col font-sans text-gray-800 overflow-x-hidden"
+        style={{
+          backgroundImage: `url(${pageBackground})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed',
+          backgroundColor: '#060066',
+        }}
+      >
+        {/* Navbar */}
+        <nav className="w-full bg-blue-50 px-4 md:px-8 py-4 shadow-sm flex items-center justify-between sticky top-0 z-50 backdrop-blur-md bg-opacity-90">
+          <div
+            className="flex items-center gap-2 md:gap-4 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => handlePageChange('HOME')}
           >
-            {renderContent()}
-          </motion.div>
-        </AnimatePresence>
-      </main>
+            <div className="relative h-16 w-16 md:h-20 md:w-20 rounded-2xl shadow-md overflow-hidden flex items-center justify-center shrink-0 bg-white">
+              <img
+                src={logoImage}
+                alt="Nhóm 3 - Công nghệ .NET9"
+                className="h-full w-full object-cover relative z-0"
+              />
+              {/* Khung viền đè trên ảnh */}
+              <div className="absolute inset-0 rounded-2xl border-[3px] border-white/80 z-10 pointer-events-none"></div>
+            </div>
+            <div className="flex flex-col justify-center">
+              <span className="font-extrabold text-lg md:text-2xl tracking-tight bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent sm:block uppercase">
+                NHÓM 3
+              </span>
+              <span className="text-xs md:text-sm font-semibold tracking-wide text-gray-500 hidden sm:block">
+                CÔNG NGHỆ .NET9
+              </span>
+            </div>
+          </div>
 
-      <GlobalCallHandler />
-      {/* Footer removed - app uses full-height content */}
-    </div>
+          <div className="flex items-center gap-2 md:gap-6">
+            <div className="hidden lg:flex items-center gap-2">
+              <NavButton
+                active={currentPage === 'HOME'}
+                onClick={() => handlePageChange('HOME')}
+                icon={<Home size={20} />}
+                label={PAGES.HOME}
+              />
+              <NavButton
+                active={currentPage === 'INTRO'}
+                onClick={() => handlePageChange('INTRO')}
+                icon={<Info size={20} />}
+                label={PAGES.INTRO}
+              />
+              <NavButton
+                active={currentPage === 'THI'}
+                onClick={() => handlePageChange('THI')}
+                icon={<CheckSquare size={20} />}
+                label={PAGES.THI}
+              />
+              <NavButton
+                active={currentPage === 'REVIEW'}
+                onClick={() => handlePageChange('REVIEW')}
+                icon={<Book size={20} />}
+                label={PAGES.REVIEW}
+              />
+              <NavButton
+                active={currentPage === 'CONSULTATION'}
+                onClick={() => handlePageChange('CONSULTATION')}
+                icon={<Mail size={20} />}
+                label={PAGES.CONSULTATION}
+              />
+              <NavButton
+                active={currentPage === 'DOCS'}
+                onClick={() => handlePageChange('DOCS')}
+                icon={<FileText size={20} />}
+                label={PAGES.DOCS}
+              />
+            </div>
+
+            <div className="lg:hidden flex items-center justify-center relative">
+              <button
+                onClick={() => setShowMobileMenu(!showMobileMenu)}
+                className="p-2 text-blue-600 bg-blue-100 rounded-lg hover:bg-blue-200 transition-colors"
+              >
+                {showMobileMenu ? <X size={24} /> : <Menu size={24} />}
+              </button>
+              <AnimatePresence>
+                {showMobileMenu && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute top-14 right-0 w-64 bg-white rounded-xl shadow-xl border border-blue-100 p-2 flex flex-col gap-1 z-50 origin-top-right"
+                  >
+                    <NavButtonMobile active={currentPage === 'HOME'} onClick={() => { handlePageChange('HOME'); setShowMobileMenu(false); }} icon={<Home size={20} />} label={PAGES.HOME} />
+                    <NavButtonMobile active={currentPage === 'INTRO'} onClick={() => { handlePageChange('INTRO'); setShowMobileMenu(false); }} icon={<Info size={20} />} label={PAGES.INTRO} />
+                    <NavButtonMobile active={currentPage === 'THI'} onClick={() => { handlePageChange('THI'); setShowMobileMenu(false); }} icon={<CheckSquare size={20} />} label={PAGES.THI} />
+                    <NavButtonMobile active={currentPage === 'REVIEW'} onClick={() => { handlePageChange('REVIEW'); setShowMobileMenu(false); }} icon={<Book size={20} />} label={PAGES.REVIEW} />
+                    <NavButtonMobile active={currentPage === 'CONSULTATION'} onClick={() => { handlePageChange('CONSULTATION'); setShowMobileMenu(false); }} icon={<Mail size={20} />} label={PAGES.CONSULTATION} />
+                    <NavButtonMobile active={currentPage === 'DOCS'} onClick={() => { handlePageChange('DOCS'); setShowMobileMenu(false); }} icon={<FileText size={20} />} label={PAGES.DOCS} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="h-8 w-[1px] bg-blue-200 mx-2 hidden md:block"></div>
+
+            <div className="flex items-center gap-2 cursor-pointer relative group">
+              <div className="relative">
+                <img
+                  src={userAvatar}
+                  alt="User Avatar"
+                  className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover border-2 border-white shadow-md group-hover:border-blue-200 transition-colors"
+                />
+                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+              </div>
+
+              {/* User Dropdown */}
+              <div className="absolute top-full right-0 pt-2 hidden group-hover:block w-56 md:w-64 z-50 origin-top-right">
+                {isAuthenticated ? (
+                  // Dropdown khi đã đăng nhập
+                  <div className="bg-white rounded-xl shadow-xl border border-blue-100 p-4 animate-fade-in flex flex-col gap-3">
+                    <div className="text-center pb-3 border-b border-gray-200">
+                      <p className="font-bold text-gray-900">{userData.name}</p>
+                      {userData.email && <p className="text-sm text-gray-500">{userData.email}</p>}
+                    </div>
+                    {userRole === 'ADMIN' && (
+                      <button
+                        className="w-full bg-gradient-to-r from-blue-700 to-cyan-600 hover:from-blue-800 hover:to-cyan-700 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-all shadow-sm"
+                        onClick={() => window.location.href = '/admin'}
+                      >
+                        <Shield size={18} />
+                        <span>Trang Quản trị</span>
+                      </button>
+                    )}
+                    <button
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm"
+                      onClick={() => handlePageChange('PROFILE')}
+                    >
+                      <UserIcon size={18} />
+                      <span>Xem Profile</span>
+                    </button>
+                    <button
+                      className="w-full bg-red-50 hover:bg-red-100 text-red-600 py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                      onClick={handleLogout}
+                    >
+                      <LogOut size={18} />
+                      <span>Đăng xuất</span>
+                    </button>
+                  </div>
+                ) : (
+                  // Dropdown khi chưa đăng nhập
+                  <div className="bg-white rounded-xl shadow-xl border border-blue-100 p-4 animate-fade-in flex flex-col items-center gap-3">
+                    <p className="text-gray-600 font-medium text-sm">Bạn chưa đăng nhập?</p>
+                    <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm" onClick={handleShowAuthPage}>
+                      <LogIn size={18} />
+                      <span>Đăng nhập ngay</span>
+                    </button>
+                    <div className="text-xs text-gray-400 text-center">
+                      Truy cập để lưu kết quả thi và tiến độ học tập
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </nav>
+
+        {/* Main Content with Transition */}
+        <main className="flex-1 flex flex-col relative w-full overflow-auto">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentPage + resetKey} // Change key to trigger animation
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="flex-1 flex flex-col w-full"
+            >
+              {renderContent()}
+            </motion.div>
+          </AnimatePresence>
+        </main>
+
+        <GlobalCallHandler />
+        {/* Footer removed - app uses full-height content */}
+      </div>
     </SignalRProvider>
   );
 };

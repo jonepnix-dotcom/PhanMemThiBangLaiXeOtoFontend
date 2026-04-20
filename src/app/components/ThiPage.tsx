@@ -49,11 +49,12 @@ interface ThiPageProps {
 
 export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, onNavigateHistory, questions: allQuestions, chapters: propChapters, retakeQuestions, retakeExamTitle, onConsumeRetake }) => {
   // State: null = chưa chọn đề, object = đang làm bài thi (hoặc xem chi tiết đề)
-  const [selectedExam, setSelectedExam] = useState<{title: string, topic: string} | null>(null);
-  
+  const [selectedExam, setSelectedExam] = useState<{ title: string, topic: string } | null>(null);
+
   // Selected questions for the current exam
   const [examQuestions, setExamQuestions] = useState<Question[]>([]);
-  const [examConfig, setExamConfig] = useState<{timeSeconds?: number; passCount?: number; paralysisMandatory?: boolean} | null>(null);
+  const [examConfig, setExamConfig] = useState<{ timeSeconds?: number; passCount?: number; paralysisMandatory?: boolean } | null>(null);
+  const [examLicenceCode, setExamLicenceCode] = useState<number | null>(null);
 
   // Dynamic license list
   const [licenseTypes, setLicenseTypes] = useState<LicenseType[]>([]);
@@ -63,12 +64,12 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
     const fetchLicenses = async () => {
       try {
         setIsLoadingLicenses(true);
-        
+
         const res = await fetch(url + 'api/vanbang');
         if (res.ok) {
           const data = await res.json();
           console.log('API Raw VanBang Data:', data);
-          
+
           const list = Array.isArray(data) ? data : (data.data || data.items || []);
           if (Array.isArray(list) && list.length > 0) {
             // Hiển thị tất cả văn bằng (kể cả CTEST, BTEST...) theo đúng định dạng API trả về
@@ -105,6 +106,7 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
   useEffect(() => {
     if (retakeQuestions && retakeQuestions.length > 0) {
       setExamQuestions(retakeQuestions);
+      setExamLicenceCode(null);
       setSelectedExam({ title: retakeExamTitle || 'Làm lại câu sai', topic: `Làm lại ${retakeQuestions.length} câu sai` });
       onConsumeRetake?.();
     }
@@ -116,10 +118,11 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
     // props retakeQuestions handled in caller (App) by passing them; avoid reading window here
   }, []);
 
-  const handleStartExam = (exam: {title: string, topic: string}) => {
+  const handleStartExam = (exam: { title: string, topic: string }) => {
     // Simple logic: Take 35 random questions or all if less than 35
     const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
     setExamQuestions(shuffled.slice(0, 35));
+    setExamLicenceCode(null);
     setSelectedExam(exam);
   };
 
@@ -127,13 +130,13 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
   const handleStartExamByLicense = async (license: LicenseType) => {
     try {
       // Gọi trực tiếp api với đúng mã bằng không chèn thêm bất kì kí tự nào (ví dụ CTEST)
-      const apiCode = license.code; 
+      const apiCode = license.code;
       const res = await fetch(url + 'api/CauHoi/CauTruc?BangLai=' + apiCode);
-      
+
       if (res.ok) {
         let rawData = await res.json();
         console.log("API CauTruc Response cho", apiCode, ":", rawData);
-        
+
         // Đề phòng trường hợp API trả về mảng 1 phần tử bọc lấy object chính (vd: `[{ questions: [...] }]`)
         if (Array.isArray(rawData) && rawData.length === 1 && (rawData[0].questions || rawData[0].cauHois)) {
           rawData = rawData[0];
@@ -158,13 +161,14 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
             }
           });
         }
-        
+
         if (dataQ.length > 0) {
           const mapped: Question[] = dataQ.map((q: any) => {
             // Format answer objects
             const rawAnswers = Array.isArray(q.answers) ? q.answers : [];
             const options = rawAnswers.map((a: any) => a?.answerContent ?? String(a));
-            
+            const answerIds = rawAnswers.map((a: any) => Number(a?.id ?? a));
+
             // Determine correct index
             let correctIndex = 0;
             if (rawAnswers.length > 0) {
@@ -174,13 +178,14 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
 
             let chapterId = 1;
             if (Array.isArray(q.categories) && q.categories.length > 0) {
-              chapterId = Number(q.categories[0].id || q.categories[0]); 
+              chapterId = Number(q.categories[0].id || q.categories[0]);
             }
 
             return {
               id: String(q.id),
               content: q.questionContent ?? '',
               options,
+              answerIds,
               correctAnswer: correctIndex,
               chapterId,
               isParalysis: !!q.isCritical,
@@ -190,12 +195,12 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
           });
 
           // Determine time and passCount. Dùng dữ liệu từ API nếu có, không thì dùng fallback mặc định.
-          const duration = rawData.duration || 20; 
+          const duration = rawData.duration || 20;
           const qCount = rawData.questionCount || mapped.length;
-          
+
           let timeSeconds = duration * 60;
           let passCount = Math.floor(qCount * 0.9); // VD: Đậu >= 90%
-          
+
           // Ghi đè cứng fallback nếu API không trả về
           if (!rawData.duration) {
             if (license.code === 'B1') { timeSeconds = 20 * 60; passCount = 27; }
@@ -203,38 +208,39 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
             else if (license.code === 'CTEST' || license.code === 'C') { timeSeconds = 24 * 60; passCount = 36; }
             else if (['D', 'E', 'F'].includes(license.code)) { timeSeconds = 26 * 60; passCount = 41; }
           } else {
-             // Sử dụng luôn config passScore từ mảng ban đầu nếu có lưu trong app state
-             const theLicense = licenseTypes.find(l => l.code === license.code);
-             if (theLicense && theLicense.description && theLicense.description.includes('Điều kiện đỗ:')) {
-                const parts = theLicense.description.split(': ')[1].split('/');
-                const extractedPassScore = parseInt(parts[0], 10);
-                if (!isNaN(extractedPassScore)) {
-                  passCount = extractedPassScore;
-                }
-             }
+            // Sử dụng luôn config passScore từ mảng ban đầu nếu có lưu trong app state
+            const theLicense = licenseTypes.find(l => l.code === license.code);
+            if (theLicense && theLicense.description && theLicense.description.includes('Điều kiện đỗ:')) {
+              const parts = theLicense.description.split(': ')[1].split('/');
+              const extractedPassScore = parseInt(parts[0], 10);
+              if (!isNaN(extractedPassScore)) {
+                passCount = extractedPassScore;
+              }
+            }
           }
 
           setExamQuestions(mapped);
           setExamConfig({ timeSeconds, passCount, paralysisMandatory: true });
-          setSelectedExam({ 
-            title: `Đề Thi Hạng ${license.code.replace('TEST', '')}`, 
-            topic: `Thời gian: ${duration} phút - ${qCount} câu hỏi` 
+          setExamLicenceCode(Number(license.id) || null);
+          setSelectedExam({
+            title: `Đề Thi Hạng ${license.code.replace('TEST', '')}`,
+            topic: `Thời gian: ${duration} phút - ${qCount} câu hỏi`
           });
           return;
         } else {
           console.warn(`API trả về 0 câu hỏi hoặc sai định dạng cho hạng ${license.code}.`);
           toast.warning(`Chưa có đề thi trên hệ thống cho bằng ${license.code}.`);
-          
+
           setExamQuestions([]);
           setExamConfig({ timeSeconds: 22 * 60, passCount: 0, paralysisMandatory: false });
-          setSelectedExam({ 
-            title: `${license.code} - Thi Sát Hạch`, 
-            topic: `Chưa có dữ liệu câu hỏi` 
+          setSelectedExam({
+            title: `${license.code} - Thi Sát Hạch`,
+            topic: `Chưa có dữ liệu câu hỏi`
           });
           return;
         }
       }
-    } catch(err) {
+    } catch (err) {
       console.error('Failed to fetch structural questions', err);
       toast.error('Lỗi kết nối đến máy chủ lấy đề thi!');
       return;
@@ -255,7 +261,7 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
         {/* Main Header / Topbar */}
         <div className="flex items-center justify-between px-6 py-4 bg-blue-600 border-b border-blue-700 z-20">
           <div className="flex items-center gap-4">
-            <button 
+            <button
               onClick={() => setSelectedExam(null)}
               className="flex items-center gap-2 text-blue-100 hover:text-white bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded-lg transition-all"
             >
@@ -266,13 +272,15 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
           </div>
           <div className="text-blue-100 text-sm">{selectedExam.topic}</div>
         </div>
-        
+
         {/* Quiz Interface */}
         <div className="flex-1 flex w-full min-h-0">
-          <QuizGame 
-            examTitle={selectedExam.title} 
+          <QuizGame
+            examTitle={selectedExam.title}
             questions={examQuestions}
-            onExit={() => setSelectedExam(null)} 
+            onExit={() => setSelectedExam(null)}
+            licenceId={examLicenceCode}
+            mode="exam"
             examConfig={examConfig ?? undefined}
             resultFullPage={true}
           />
@@ -283,9 +291,9 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
 
   // 2. Màn hình chính (Trang chủ Thi Sát Hạch)
   return (
-  <div className="w-full h-full flex flex-col bg-blue-900/40 backdrop-blur-md animate-fade-in overflow-hidden">
+    <div className="w-full h-full flex flex-col bg-blue-900/40 backdrop-blur-md animate-fade-in overflow-hidden">
       <div className="flex-1 max-w-7xl mx-auto px-6 py-6 w-full flex flex-col justify-center">
-        
+
         {/* Phần 1: Chọn Văn Bằng */}
         <div>
           <div className="text-center mb-6">
@@ -294,7 +302,7 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
               Chọn hạng bằng lái xe bạn đang ôn tập để làm các đề thi sát với thực tế nhất.
             </p>
           </div>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
             {isLoadingLicenses ? (
               <div className="col-span-full flex justify-center items-center py-10">
@@ -302,7 +310,7 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
                 <span className="ml-3 text-white">Đang tải danh sách văn bằng...</span>
               </div>
             ) : licenseTypes.map((license) => (
-              <button 
+              <button
                 key={license.code}
                 onClick={() => handleStartExamByLicense(license)}
                 className={`
@@ -317,7 +325,7 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
                       {getLicenseIcon(license.code)}
                     </div>
                     <div className="flex flex-col items-end gap-2">
-                       <span className={`px-3 py-1 rounded-md text-[10px] md:text-sm font-bold ${license.bg} ${license.color}`}>
+                      <span className={`px-3 py-1 rounded-md text-[10px] md:text-sm font-bold ${license.bg} ${license.color}`}>
                         {license.code}
                       </span>
                       <span className="text-[9px] md:text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded-md whitespace-nowrap">
@@ -325,16 +333,16 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
                       </span>
                     </div>
                   </div>
-                  
+
                   <h3 className={`text-lg md:text-2xl font-bold group-hover:text-current text-gray-900 mb-2`}>
                     {license.name}
                   </h3>
-                  
+
                   <p className="text-gray-500 text-sm md:text-base line-clamp-2 min-h-[2.5rem]">
                     {license.description}
                   </p>
                 </div>
-                
+
                 <div className="flex items-center text-[10px] md:text-xs font-bold text-gray-400 group-hover:text-current transition-colors mt-2 md:mt-4 pt-2 md:pt-3 border-t border-gray-100 w-full">
                   <span>Vào thi ngay</span>
                   <ArrowLeft className="w-4 h-4 ml-2 rotate-180 transition-transform group-hover:translate-x-2" />
@@ -354,13 +362,13 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
         {/* Phần 2: Hành động nhanh (Thi thử & Lịch sử) */}
         <div className="grid grid-cols-2 md:grid-cols-2 gap-2 md:gap-4 mb-4">
           {/* Card Thi Thử */}
-          <button 
+          <button
             onClick={async () => {
               try {
                 const res = await fetch(url + 'api/CauHoi/NgauNhien?SoLuong=30');
                 if (res.ok) {
                   let rawData = await res.json();
-                  
+
                   if (Array.isArray(rawData) && rawData.length === 1 && (rawData[0].questions || rawData[0].cauHois)) {
                     rawData = rawData[0];
                   }
@@ -381,10 +389,12 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
                       else dataQ.push(item);
                     });
                   }
-                  
+
                   if (dataQ.length > 0) {
                     const mapped: Question[] = dataQ.map((q: any) => {
-                      const options = Array.isArray(q.answers) ? q.answers.map((a: any) => a?.answerContent ?? String(a)) : [];
+                      const rawAnswers = Array.isArray(q.answers) ? q.answers : [];
+                      const options = rawAnswers.map((a: any) => a?.answerContent ?? String(a));
+                      const answerIds = rawAnswers.map((a: any) => Number(a?.id ?? a));
                       let correctIndex = 0;
                       if (Array.isArray(q.answers)) {
                         const idx = q.answers.findIndex((a: any) => a && a.isCorrect === true);
@@ -393,13 +403,14 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
 
                       let chapterId = 1;
                       if (Array.isArray(q.categories) && q.categories.length > 0) {
-                        chapterId = Number(q.categories[0].id || q.categories[0]); 
+                        chapterId = Number(q.categories[0].id || q.categories[0]);
                       }
 
                       return {
                         id: `api-random-${String(q.id)}`,
                         content: q.questionContent ?? '',
                         options,
+                        answerIds,
                         correctAnswer: Math.max(0, Math.min(correctIndex, options.length - 1)),
                         chapterId,
                         isParalysis: !!q.isCritical,
@@ -413,9 +424,10 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
 
                     setExamQuestions(mapped);
                     setExamConfig({ timeSeconds, passCount, paralysisMandatory: true });
-                    setSelectedExam({ 
-                      title: "Thi Thử Ngẫu Nhiên", 
-                      topic: `Thời gian: ${timeSeconds/60} phút - ${mapped.length} câu hỏi` 
+                    setExamLicenceCode(null);
+                    setSelectedExam({
+                      title: "Thi Thử Ngẫu Nhiên",
+                      topic: `Thời gian: ${timeSeconds / 60} phút - ${mapped.length} câu hỏi`
                     });
                     return;
                   }
@@ -428,9 +440,9 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
               const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
               setExamQuestions(shuffled.slice(0, 30));
               setExamConfig({ timeSeconds: 22 * 60, passCount: 27, paralysisMandatory: true });
-              setSelectedExam({ 
-                title: "Thi Thử Ngẫu Nhiên", 
-                topic: "Thời gian: 22 phút - 30 câu hỏi (Sinh tự động)" 
+              setSelectedExam({
+                title: "Thi Thử Ngẫu Nhiên",
+                topic: "Thời gian: 22 phút - 30 câu hỏi (Sinh tự động)"
               });
             }}
             className="bg-gradient-to-br from-blue-600 to-blue-500 rounded-2xl p-3 sm:p-6 text-white shadow-lg hover:shadow-blue-500/40 transform hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group text-left"
@@ -453,7 +465,7 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
           </button>
 
           {/* Card Lịch Sử */}
-          <button 
+          <button
             onClick={() => {
               if (isAuthenticated) {
                 onNavigateHistory();
@@ -463,7 +475,7 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
             }}
             className="bg-white rounded-2xl p-3 sm:p-6 border border-gray-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group text-left"
           >
-             <div className="absolute top-0 right-0 p-3 sm:p-6 text-gray-100 transform group-hover:scale-110 transition-transform duration-500">
+            <div className="absolute top-0 right-0 p-3 sm:p-6 text-gray-100 transform group-hover:scale-110 transition-transform duration-500">
               <History className="w-16 h-16 md:w-24 md:h-24 opacity-50 md:opacity-100" />
             </div>
             <div className="relative z-10">
@@ -472,8 +484,8 @@ export const ThiPage: React.FC<ThiPageProps> = ({ isAuthenticated, onShowAuth, o
               </div>
               <h3 className="text-base md:text-2xl font-bold text-gray-900 mb-1 md:mb-2">Lịch Sử Làm Bài</h3>
               <p className="text-gray-600 text-[10px] md:text-sm mb-2 md:mb-4 max-w-md line-clamp-2">
-                {isAuthenticated 
-                  ? "Xem lại kết quả bài thi để theo dõi sự tiến bộ." 
+                {isAuthenticated
+                  ? "Xem lại kết quả bài thi để theo dõi sự tiến bộ."
                   : "Đăng nhập để lưu kết quả thi của bạn."}
               </p>
               <div className="inline-flex items-center gap-2 bg-gray-100 group-hover:bg-purple-50 text-gray-700 group-hover:text-purple-700 px-2 py-1.5 md:px-4 md:py-2 rounded-lg md:rounded-xl transition-colors text-[10px] md:text-sm font-semibold">

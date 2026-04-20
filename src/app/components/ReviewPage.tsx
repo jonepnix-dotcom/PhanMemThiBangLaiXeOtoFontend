@@ -138,7 +138,7 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
         console.error('Invalid JSON response:', text);
         throw e;
       }
-      
+
       const qArray = Array.isArray(data) ? data : (data.questions || data.data || data.items || []);
       const mappedQuestions: Question[] = qArray.map((q: any) => {
         const options = Array.isArray(q.answers) ? q.answers.map((a: any) => a?.answerContent ?? String(a)) : [];
@@ -341,6 +341,7 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
         examTitle={title}
         questions={filteredQuestions}
         onExit={() => { setSelectedChapter(null); setShowParalysisOnly(false); }}
+        mode="review"
         showTimer={false}
         autoAdvance={false}
         allowUnsure={false}
@@ -353,7 +354,7 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
 
   // 2. Mặc định: Hiển thị danh sách các chương ôn tập
   return (
-  <div className="w-full h-full bg-gradient-to-b from-transparent via-blue-50/30 to-transparent animate-fade-in overflow-auto">
+    <div className="w-full h-full bg-gradient-to-b from-transparent via-blue-50/30 to-transparent animate-fade-in overflow-auto">
       <div className="max-w-7xl mx-auto px-6 py-10">
         <div className="mb-8 text-center">
           <h2 className="text-3xl font-bold text-white drop-shadow mb-2">
@@ -361,44 +362,44 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
           </h2>
           <p className="text-white/90 drop-shadow">Học theo từng chương để nắm vững kiến thức luật giao thông đường bộ</p>
         </div>
-        
+
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4 sm:p-6 p-2">
           {chapters.map((chapter) => {
             const count = questions.filter(q => q.chapterId === chapter.id).length;
             const displayDetail = count > 0 ? `${count} câu` : chapter.detail;
             return (
-            <button 
-              key={chapter.id}
-              onClick={() => setSelectedChapter(chapter)}
-              className="bg-white p-2 md:p-6 rounded-xl shadow-md hover:shadow-xl border border-gray-100 hover:border-blue-200 transition-all duration-300 flex flex-col gap-4 hover:-translate-y-1 group text-left h-full"
-            >
-              <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4">
-                <div className="w-10 h-10 md:w-14 md:h-14 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform flex-shrink-0">
-                  {chapter.icon}
+              <button
+                key={chapter.id}
+                onClick={() => setSelectedChapter(chapter)}
+                className="bg-white p-2 md:p-6 rounded-xl shadow-md hover:shadow-xl border border-gray-100 hover:border-blue-200 transition-all duration-300 flex flex-col gap-4 hover:-translate-y-1 group text-left h-full"
+              >
+                <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4">
+                  <div className="w-10 h-10 md:w-14 md:h-14 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform flex-shrink-0">
+                    {chapter.icon}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-[12px] md:text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                      {chapter.title}
+                    </h3>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-[12px] md:text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-                    {chapter.title}
-                  </h3>
+
+                <p className="text-gray-700 text-[10px] md:text-sm leading-relaxed flex-1">
+                  {chapter.topic}
+                </p>
+
+                <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-2">
+                  <span className="text-[9px] md:text-xs text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded">
+                    {displayDetail}
+                  </span>
+                  <ArrowLeft className="w-5 h-5 text-gray-400 group-hover:text-blue-600 rotate-180 transition-all" />
                 </div>
-              </div>
-              
-              <p className="text-gray-700 text-[10px] md:text-sm leading-relaxed flex-1">
-                {chapter.topic}
-              </p>
-              
-              <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-2">
-                <span className="text-[9px] md:text-xs text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded">
-                  {displayDetail}
-                </span>
-                <ArrowLeft className="w-5 h-5 text-gray-400 group-hover:text-blue-600 rotate-180 transition-all" />
-              </div>
-            </button>
+              </button>
             );
           })}
-          
+
           {/* Nút Các câu hay liệt */}
-          <button 
+          <button
             onClick={handleParalysisClick}
             disabled={loadingParalysis}
             className={`bg-white p-2 md:p-6 rounded-xl shadow-md hover:shadow-xl border border-gray-100 hover:border-red-200 transition-all duration-300 flex flex-col gap-4 hover:-translate-y-1 group text-left h-full ${loadingParalysis ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -413,11 +414,11 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
                 </h3>
               </div>
             </div>
-            
+
             <p className="text-gray-700 text-[10px] md:text-sm leading-relaxed flex-1">
               Tổng hợp các câu hỏi điểm liệt quan trọng
             </p>
-            
+
             <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-2">
               <span className="text-xs text-red-600 font-medium bg-red-50 px-2 py-1 rounded">
                 Ôn tập hiệu quả
@@ -458,7 +459,7 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
           </button>
         </div>
       </div>
-      
+
       {/* Small footer with basic info */}
       <footer className="bg-white border-t z-10 relative">
         <div className="container mx-auto px-8 py-4">
