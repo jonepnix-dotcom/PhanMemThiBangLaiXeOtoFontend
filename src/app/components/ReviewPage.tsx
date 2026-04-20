@@ -37,6 +37,9 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
   const [showTrafficSigns, setShowTrafficSigns] = useState(false);
   const [trafficSigns, setTrafficSigns] = useState<any[]>([]);
   const [loadingSigns, setLoadingSigns] = useState(false);
+  const [showTrafficQuiz, setShowTrafficQuiz] = useState(false);
+  const [trafficQuizQuestions, setTrafficQuizQuestions] = useState<Question[]>([]);
+  const [loadingTrafficQuiz, setLoadingTrafficQuiz] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(24);
   const [totalCount, setTotalCount] = useState(0);
@@ -211,8 +214,100 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
     return () => { cancelled = true; };
   }, [showTrafficSigns, currentPage, pageSize]);
 
-  if (selectedChapter || showParalysisOnly || showTrafficSigns) {
+  // Fetch traffic-sign questions for quiz mode
+  const handleTrafficQuizClick = async () => {
+    try {
+      setLoadingTrafficQuiz(true);
+      setShowTrafficSigns(false);
+      // Use the same api endpoint pattern as other handlers
+      const res = await fetch(`${url}api/CauHoi?BienBao=true&SoLuong=318`);
+      if (!res.ok) throw new Error('Network error fetching traffic quiz');
+      const text = await res.text();
+      let data: any;
+      try { data = JSON.parse(text); } catch (e) { console.error('Invalid JSON response for traffic quiz', text); throw e; }
+
+      const qArray = Array.isArray(data) ? data : (data.questions || data.data || data.items || []);
+      const mappedQuestions: Question[] = qArray.map((q: any) => {
+        const options = Array.isArray(q.answers) ? q.answers.map((a: any) => a?.answerContent ?? String(a)) : [];
+        let correctIndex = 0;
+        if (Array.isArray(q.answers)) {
+          const idx = q.answers.findIndex((a: any) => a && a.isCorrect === true);
+          if (idx !== -1) correctIndex = idx;
+        }
+
+        return {
+          id: `api-${String(q.id)}`,
+          content: q.questionContent ?? '',
+          options,
+          correctAnswer: Math.max(0, Math.min(correctIndex, options.length - 1)),
+          chapterId: (q.categories && q.categories.length > 0) ? q.categories[0] : 0,
+          isParalysis: !!q.isCritical,
+          imageUrl: q.imageUrl ?? '',
+          explanation: q.explanation ?? '',
+          optionExplanations: [],
+        };
+      });
+
+      setTrafficQuizQuestions(mappedQuestions);
+      setShowTrafficQuiz(true);
+    } catch (err) {
+      console.error('Failed to fetch traffic quiz questions:', err);
+      setTrafficQuizQuestions([]);
+      setShowTrafficQuiz(true); // still open quiz view (empty) so user sees a message
+    } finally {
+      setLoadingTrafficQuiz(false);
+    }
+  };
+
+  if (selectedChapter || showParalysisOnly || showTrafficSigns || showTrafficQuiz) {
     // Special view for traffic signs (admin-like layout)
+    // If traffic quiz requested, show the QuizGame similar to other review flows
+    if (showTrafficQuiz) {
+      const title = 'Tổng hợp biển báo vào tình huống';
+      return (
+        <div className="fixed inset-0 z-[100] flex flex-col bg-white animate-fade-in overflow-hidden">
+          <div className="flex items-center justify-between px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 border-b border-blue-700 z-20">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => { setShowTrafficQuiz(false); setTrafficQuizQuestions([]); }}
+                className="inline-flex items-center gap-2 text-blue-100 bg-blue-700/30 hover:bg-blue-800 px-4 py-2 rounded-full transition-all shadow-sm"
+              >
+                <ArrowLeft size={18} />
+                <span className="font-medium">Quay lại</span>
+              </button>
+            </div>
+
+            <div className="flex-1 text-center">
+              <h1 className="text-lg md:text-xl font-extrabold text-white truncate">{title}</h1>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="text-white/90 text-sm">{trafficQuizQuestions.length} câu</div>
+            </div>
+          </div>
+
+          <div className="flex-1 flex w-full min-h-0">
+            {loadingTrafficQuiz ? (
+              <div className="m-auto">Đang tải câu hỏi...</div>
+            ) : (
+              <QuizGame
+                examTitle={title}
+                questions={trafficQuizQuestions}
+                onExit={() => { setShowTrafficQuiz(false); setTrafficQuizQuestions([]); }}
+                mode="review"
+                showTimer={false}
+                autoAdvance={false}
+                allowUnsure={false}
+                submitButtonText="Hoàn thành"
+                showImmediateExplanation={true}
+                resultFullPage={true}
+              />
+            )}
+          </div>
+        </div>
+      );
+    }
+
     if (showTrafficSigns) {
       const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
       const startItem = totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1;
@@ -456,7 +551,8 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
           <button
             onClick={() => {
               setCurrentPage(1);
-              setShowTrafficSigns(true);
+              // open quiz mode for traffic signs
+              handleTrafficQuizClick();
             }}
             className="bg-white p-2 md:p-6 rounded-xl shadow-md hover:shadow-xl border border-gray-100 hover:border-green-200 transition-all duration-300 flex flex-col gap-4 hover:-translate-y-1 group text-left h-full"
           >
@@ -465,19 +561,19 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
                 <MapIcon size={32} className="text-green-600" />
               </div>
               <div className="flex-1">
-                <h3 className="text-[12px] md:text-lg font-bold text-gray-900 group-hover:text-green-600 transition-colors">
-                  Biển báo
+          <h3 className="text-[12px] md:text-lg font-bold text-gray-900 group-hover:text-green-600 transition-colors">
+            Tổng hợp biển báo vào tình huống
                 </h3>
               </div>
             </div>
 
             <p className="text-gray-700 text-[10px] md:text-sm leading-relaxed flex-1">
-              Ôn tập nhận biết các loại biển báo giao thông
+              Ôn tập nhận biết các loại biển báo giao thông và ứng dụng vào tình huống
             </p>
 
             <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-2">
-              <span className="text-xs text-green-600 font-medium bg-green-50 px-2 py-1 rounded">
-                Xem biển báo
+                <span className="text-xs text-green-600 font-medium bg-green-50 px-2 py-1 rounded">
+                Tổng hợp
               </span>
               <ArrowLeft className="w-5 h-5 text-gray-400 group-hover:text-green-600 rotate-180 transition-all" />
             </div>
