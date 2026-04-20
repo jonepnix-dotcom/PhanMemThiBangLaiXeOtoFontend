@@ -355,7 +355,7 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ questions }) => {
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="text-white/90 text-sm">Thời gian: 20 phút · 1 câu hỏi</div>
+            <div className="text-white/90 text-sm">{filteredQuestions.length} câu</div>
           </div>
         </div>
 
