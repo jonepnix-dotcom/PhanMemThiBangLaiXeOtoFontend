@@ -97,7 +97,7 @@ src/
 ### 1. Clone repository
 
 ```bash id="m9r6i6"
-git clone https://github.com/yourusername/driving-license-frontend.git
+git clone https://github.com/jonepnix-dotcom/driving-license-frontend.git
 ```
 
 ---
