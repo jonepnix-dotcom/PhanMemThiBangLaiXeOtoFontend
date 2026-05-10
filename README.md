@@ -97,7 +97,7 @@ src/
 ### 1. Clone repository
 
 ```bash id="m9r6i6"
-git clone https://github.com/jonepnix-dotcom/driving-license-frontend.git
+git clone https://github.com/jonepnix-dotcom/PhanMemThiBangLaiXeOtoFontend.git
 ```
 
 ---
@@ -121,15 +121,13 @@ yarn install
 Update the existing `.env` file:
 
 ```env id="8d42bp"
-VITE_API_URL=http://localhost:5000/api
-VITE_SOCKET_URL=http://localhost:5000
+export const url = "localhost:5000/api/";
 ```
 
 Example:
 
 ```env id="3g7b2u"
-VITE_API_URL=https://your-api-domain.com/api
-VITE_SOCKET_URL=https://your-api-domain.com
+export const url = "your-api-domain.com/api/";
 ```
 
 ---
@@ -188,26 +186,6 @@ Realtime features include:
 
 ---
 
-# 📸 Screenshots
-
-## Home Page
-
-(Add screenshot here)
-
-## Online Test Interface
-
-(Add screenshot here)
-
-## Realtime Call Room
-
-(Add screenshot here)
-
-## Mobile Responsive UI
-
-(Add screenshot here)
-
----
-
 # 📈 Learning Outcomes
 
 Through this project, I learned:
@@ -224,20 +202,12 @@ Through this project, I learned:
 
 ---
 
-# 🔗 Demo & Source Code
-
-* GitHub: https://github.com/jonepnix-dotcom/driving-license-frontend
-* Demo: https://your-demo-link.com
-
----
-
 # 👨‍💻 Author
 
 Your Name
 
-* Email: [your-email@gmail.com](mailto:your-email@gmail.com)
-* GitHub: https://github.com/yourusername
-* LinkedIn: https://linkedin.com/in/yourprofile
+* Email: [jonepnix@gmail.com](mailto:jonepnix@gmail.com)
+* GitHub: https://github.com/jonepnix-dotcom
 
 ---
 
