@@ -1,4 +1,4 @@
-# Driving License Test Frontend
+# PhanMemThiBangLaiXeOtoFontend
 
 A modern frontend web application for online driving license examination and realtime driving practice communication.
 The project simulates an online automobile driving license learning system with realtime video/audio communication support.
